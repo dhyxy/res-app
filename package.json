@@ -2,7 +2,7 @@
   "name": "res-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://hamzaniazucalgary.github.io/res-app/index.html",
+  "homepage": "https://dhyxy.github.io/res-app",
   "dependencies": {
     "@fontsource/open-sans": "^5.1.0",
     "@testing-library/jest-dom": "^5.17.0",
