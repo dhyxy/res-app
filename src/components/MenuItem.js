@@ -14,6 +14,12 @@ import {
   FaFire,
   FaWineBottle,
   FaUtensils,
+  FaGlassCheers,
+  FaCookie,
+  FaHamburger,
+  FaGlassMartiniAlt,
+  FaCoffee,
+  FaFilter,
 } from "react-icons/fa";
 
 const MenuItemCard = styled.div`
@@ -21,109 +27,162 @@ const MenuItemCard = styled.div`
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transform: scale(1);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
-  max-width: 300px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 300px;
+  margin: 10px auto; /* Added vertical margin for spacing */
 
   &:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
 
-  @media (max-width: 767px) {
-    max-width: 90%;
-    margin-bottom: 40px;
+  @media (max-width: 576px) {
+    max-width: 100%; /* Full width on mobile */
+    margin: 10px 0; /* Vertical spacing only */
   }
 
   .image-wrapper {
+    width: 100%;
+    height: 180px; /* Reduced height for mobile */
+    background-color: #f9f9f9;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    height: 200px;
-    background-color: #f9f9f9;
-    overflow: hidden;
 
     img {
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      border-radius: 12px; /* Adds rounded edges */
+      border-radius: 12px;
     }
   }
 
   .details {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allows the details section to grow and fill space */
     text-align: left;
-    text-align: justify;
-    line-height: 1.5;
+
+    @media (max-width: 576px) {
+      padding: 10px; /* Reduced padding on mobile */
+    }
 
     h3 {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+
+      @media (max-width: 576px) {
+        font-size: 1rem;
+      }
     }
 
     .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 6px;
+      justify-items: center; /* Center tags within their grid cell */
 
       span {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         background-color: #eef2f3;
         color: #4a90e2;
-        padding: 4px 8px;
+        padding: 3px 7px;
         border-radius: 15px;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
+
+        @media (max-width: 576px) {
+          font-size: 0.6rem;
+          padding: 2px 5px;
+        }
       }
     }
 
     .rating {
       display: flex;
       align-items: center;
-      gap: 4px;
-      margin-bottom: 10px;
+      gap: 3px;
+      margin-top: 8px;
+      margin-bottom: 8px;
 
       .stars {
         display: flex;
         align-items: center;
-        gap: 2px;
+        gap: 1px;
       }
 
       .num-reviews {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         color: #666;
+      }
+
+      @media (max-width: 576px) {
+        .num-reviews {
+          font-size: 0.6rem;
+        }
       }
     }
 
-    p {
+    .description {
       margin: 5px 0;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #666;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
+      @media (max-width: 576px) {
+        font-size: 0.75rem;
+      }
+
+      .read-more {
+        color: #4a90e2;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: bold;
+        margin-left: 5px;
+        flex-shrink: 0; /* Prevents the read-more from wrapping */
+
+        &:hover {
+          color: #357ab8;
+        }
+
+        &:focus {
+          outline: 2px solid rgba(74, 144, 226, 0.5);
+          outline-offset: 0px;
+        }
+
+        @media (max-width: 576px) {
+          font-size: 0.7rem;
+        }
+      }
     }
 
     .price {
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #4a90e2;
-      margin-top: 10px;
+      margin-top: 8px;
+
+      @media (max-width: 576px) {
+        font-size: 1rem;
+      }
     }
   }
 `;
 
 const AddToCartButton = styled.button`
-  margin-top: auto;
+  margin-top: auto; /* Pushes the button to the bottom of the card */
   padding: 10px 15px;
   background-color: #4a90e2;
   border: none;
@@ -143,7 +202,13 @@ const AddToCartButton = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 8px 12px;
+    font-size: 0.8rem;
   }
 `;
 
@@ -163,18 +228,20 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background: ${({ theme }) => theme.modalBg || "#fff"};
-  padding: 30px;
+  padding: 25px;
   border-radius: ${({ theme }) => theme.borderRadius || "10px"};
   width: 90%;
-  max-width: 500px;
+  max-width: 450px;
   box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.3s ease-out;
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(-20px);
+      transform: translateY(-15px);
     }
     to {
       opacity: 1;
@@ -185,43 +252,83 @@ const ModalContent = styled.div`
   h2 {
     margin-top: 0;
     color: #333;
+    font-size: 1.4rem;
+
+    @media (max-width: 576px) {
+      font-size: 1.2rem;
+    }
   }
 
   .customization-options {
-    margin: 20px 0;
+    margin: 15px 0;
     text-align: left;
+
+    h4 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+
+      @media (max-width: 576px) {
+        font-size: 0.9rem;
+      }
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      input {
+        transform: scale(1.1); /* Larger checkboxes/radio buttons for touch */
+      }
+
+      @media (max-width: 576px) {
+        flex-direction: column;
+        align-items: flex-start;
+
+        input {
+          margin-right: 0;
+        }
+      }
+    }
   }
 
   .buttons {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-  }
+    margin-top: 15px;
 
-  label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: #333;
-
-    input {
-      margin-right: 10px;
+    @media (max-width: 576px) {
+      flex-direction: column;
+      align-items: stretch;
     }
   }
 `;
 
 const CloseButton = styled.button`
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 12px;
+  right: 12px;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
   color: ${({ theme }) => theme.textColor || "#333"};
 
   &:hover {
     color: ${({ theme }) => theme.accentColor || "#4a90e2"};
+  }
+
+  &:focus {
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 18px;
+    top: 10px;
+    right: 10px;
   }
 `;
 
@@ -230,9 +337,9 @@ const ConfirmButton = styled.button`
   color: #ffffff;
   border: none;
   border-radius: 5px;
-  padding: 8px 15px;
+  padding: 8px 14px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: background-color 0.3s;
 
   &:hover {
@@ -243,6 +350,17 @@ const ConfirmButton = styled.button`
     background-color: #a0c4e3;
     cursor: not-allowed;
   }
+
+  &:focus {
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    width: 100%; /* Make buttons full-width on small screens */
+  }
 `;
 
 const CancelButton = styled.button`
@@ -250,13 +368,24 @@ const CancelButton = styled.button`
   color: #333333;
   border: none;
   border-radius: 5px;
-  padding: 8px 15px;
+  padding: 8px 14px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: background-color 0.3s;
 
   &:hover {
     background-color: #aaa;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(204, 204, 204, 0.7);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    width: 100%; /* Make buttons full-width on small screens */
   }
 `;
 
@@ -265,14 +394,15 @@ const tagIconMapping = {
   Vegan: <FaLeaf />,
   Vegetarian: <FaLeaf />,
   Spicy: <FaFire />,
-  "Gluten-Free": <FaUtensils />,
+  "Gluten-Free": <FaLeaf />, // aligned with the previous mapping
   Alcoholic: <FaWineBottle />,
-  "Non-Alcoholic": <FaUtensils />,
-  Sweet: <FaUtensils />,
-  Breakfast: <FaUtensils />,
-  Lunch: <FaUtensils />,
+  "Non-Alcoholic": <FaGlassCheers />, // aligned with the previous mapping
+  Sweet: <FaCookie />, // aligned with the previous mapping
+  Breakfast: <FaCoffee />, // aligned with the previous mapping
+  Lunch: <FaHamburger />, // aligned with the previous mapping
   Dinner: <FaUtensils />,
-  Appetizer: <FaUtensils />,
+  Appetizer: <FaGlassMartiniAlt />, // aligned with the previous mapping
+  Miscellaneous: <FaFilter />,
 };
 
 const MenuItem = React.memo(
@@ -295,6 +425,9 @@ const MenuItem = React.memo(
     // Customization State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOptions, setSelectedOptions] = useState({});
+
+    // Description Truncation State
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
     const handleError = () => {
       setImgSrc(fallbackImage);
@@ -387,6 +520,18 @@ const MenuItem = React.memo(
       return stars;
     };
 
+    // Function to toggle description expansion
+    const toggleDescription = () => {
+      setIsDescriptionExpanded((prev) => !prev);
+    };
+
+    // Function to get truncated description
+    const getTruncatedDescription = (text, wordLimit) => {
+      const words = text.split(" ");
+      if (words.length <= wordLimit) return text;
+      return words.slice(0, wordLimit).join(" ") + "...";
+    };
+
     return (
       <>
         <MenuItemCard>
@@ -396,9 +541,9 @@ const MenuItem = React.memo(
           <div className="details">
             <h3>
               {name}{" "}
-              {tags.includes("Vegan") || tags.includes("Vegetarian") ? (
+              {(tags.includes("Vegan") || tags.includes("Vegetarian")) && (
                 <FaLeaf title="Vegetarian/Vegan" />
-              ) : null}
+              )}
             </h3>
             <div className="tags">
               {tags.map((tag, index) => (
@@ -411,7 +556,25 @@ const MenuItem = React.memo(
               <div className="stars">{renderStars(rating)}</div>
               <div className="num-reviews">({numReviews} reviews)</div>
             </div>
-            <p>{description}</p>
+            <p className="description">
+              {isDescriptionExpanded
+                ? description
+                : getTruncatedDescription(description, 6)}
+              {description.split(" ").length > 6 && (
+                <span
+                  className="read-more"
+                  onClick={toggleDescription}
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" || e.key === " ") toggleDescription();
+                  }}
+                  aria-expanded={isDescriptionExpanded}
+                >
+                  {isDescriptionExpanded ? " Read Less" : " Read More"}
+                </span>
+              )}
+            </p>
             <p className="price">${price.toFixed(2)}</p>
           </div>
           <AddToCartButton

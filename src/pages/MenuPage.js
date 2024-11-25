@@ -9,239 +9,455 @@ import { toast } from "react-toastify";
 import BackButton from "../components/BackButton"; // Import BackButton
 import {
   FaGlassMartiniAlt, // for Appetizer
-  FaUtensils, // for Meal Type
+  FaUtensils, // for Food
   FaCoffee, // for Breakfast
   FaHamburger, // for Lunch
   FaLeaf, // for Dietary
-  FaCookie, // for Sweet
-  FaGlassCheers, // for Non-Alcoholic
+  FaCookie, // for Desserts
+  FaGlassCheers, // for Drinks
   FaTimes,
   FaFilter,
   FaSort,
   FaSearch,
   FaFire,
   FaWineBottle,
+  FaList, // for All Items
 } from "react-icons/fa";
 
 // Styled Components
 
+// 1. ClearFiltersButton
+const ClearFiltersButton = styled.button`
+  padding: 6px 12px;
+  border: 1px solid #ff4d4d;
+  border-radius: 20px;
+  background-color: #fff;
+  color: #ff4d4d;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover {
+    background-color: #ff4d4d;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(255, 77, 77, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+`;
+
+// 2. TagButton
+const TagButton = styled.button`
+  padding: 6px 12px;
+  border: 1px solid #4a90e2;
+  border-radius: 20px;
+  background-color: ${({ selected }) => (selected ? "#4a90e2" : "#fff")};
+  color: ${({ selected }) => (selected ? "#fff" : "#4a90e2")};
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: ${({ selected }) => (selected ? "#357ab8" : "#4a90e2")};
+    color: #fff;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+`;
+
+// 3. CategoryButtons Container
+const CategoryButtons = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center; /* Center align on desktop */
+  margin-bottom: 15px;
+
+  @media (min-width: 768px) {
+    justify-content: center; /* Centered on desktop */
+    margin-bottom: 20px;
+  }
+`;
+
+// 4. CategoryButton
+const CategoryButton = styled.button`
+  padding: 8px 16px;
+  border: 1px solid #4a90e2;
+  border-radius: 20px;
+  background-color: ${({ selected }) => (selected ? "#4a90e2" : "#fff")};
+  color: ${({ selected }) => (selected ? "#fff" : "#4a90e2")};
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: ${({ selected }) => (selected ? "#357ab8" : "#4a90e2")};
+    color: #fff;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+    outline-offset: 0px;
+  }
+
+  @media (max-width: 576px) {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+`;
+
+// 5. MenuContainer
 const MenuContainer = styled.div`
-  padding: 40px 20px;
-  text-align: center;
+  padding: 20px 15px;
 
   h1 {
-    margin-bottom: 30px;
-    font-size: 2.5rem;
-    color: #333;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-align: center; /* Center the title */
+
+    @media (max-width: 576px) {
+      font-size: 1.6rem;
+    }
   }
 
   .filters {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
-    width: 100%;
+    align-items: stretch;
+    gap: 15px;
+    margin-bottom: 20px;
 
-    @media (min-width: 992px) {
+    @media (min-width: 768px) {
       flex-direction: row;
+      flex-wrap: wrap;
       justify-content: space-between;
-      align-items: flex-start;
     }
 
     .filter-sections {
       display: flex;
       flex-direction: column;
       gap: 15px;
+
+      @media (min-width: 768px) {
+        flex-direction: row;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+    }
+
+    .filter-category {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
       width: 100%;
 
-      @media (min-width: 992px) {
-        flex-direction: row;
-        gap: 30px;
+      @media (min-width: 768px) {
+        width: auto;
       }
 
-      .filter-category {
+      .filter-title {
         display: flex;
-        flex-direction: column;
-        align-items: center; /* Center align on all screen sizes */
-        gap: 10px;
-        width: 100%;
+        align-items: center;
+        justify-content: center; /* Centered on mobile */
+        gap: 5px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+        font-size: 1rem;
 
-        /* Removed media query to keep alignment centered on all screen sizes
-        @media (min-width: 992px) {
-          align-items: flex-start;
-          width: auto;
+        svg {
+          color: #4a90e2;
+          font-size: 1.2rem;
         }
-        */
 
-        .filter-title {
-          display: flex;
-          align-items: center;
-          justify-content: center; /* Center the content horizontally */
-          gap: 5px;
-          font-weight: bold;
-          color: #333;
-          margin-bottom: 10px; /* Increased margin for better spacing */
-          text-align: center;
-          /* Removed width: 100% to prevent stretching */
+        @media (max-width: 576px) {
+          font-size: 0.9rem;
 
           svg {
-            color: #4a90e2;
+            font-size: 1rem;
           }
         }
 
-        .tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center; /* Center justify on all screen sizes */
+        @media (min-width: 768px) {
+          justify-content: flex-start; /* Align titles to the left on desktop */
+        }
+      }
 
-          /* Removed media query to keep tags centered on all screen sizes
-          @media (min-width: 992px) {
-            justify-content: flex-start;
-          }
-          */
+      .tags {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+        justify-items: center;
+
+        @media (min-width: 768px) {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          justify-items: flex-start;
         }
       }
     }
 
-    .sort-search {
+    /* Clear Filters Button positioned appropriately */
+    .clear-filters-container {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
+      justify-content: center;
       width: 100%;
-      font-weight: bold;
+      margin-top: 10px;
 
-      @media (min-width: 992px) {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 30px;
+      @media (min-width: 768px) {
+        justify-content: flex-start;
         width: auto;
+        margin-top: 0;
       }
+    }
+  }
 
-      .sort {
+  /* Controls Section: Sort By, Category Buttons, Search */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center on mobile */
+    gap: 15px;
+    margin-bottom: 20px;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center; /* Center on desktop */
+      gap: 20px;
+    }
+  }
+
+  /* Sort and Search Section */
+  .sort-search {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center align on mobile */
+    justify-content: center; /* Center content vertically */
+    gap: 15px;
+    font-weight: bold;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .sort {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      label {
         display: flex;
         align-items: center;
-        gap: 15px;
-        flex-shrink: 0;
-        font-weight: bold;
+        gap: 5px;
+        font-size: 1rem;
+        color: #333;
 
-        label {
-          display: flex;
-          align-items: center;
-          gap: 5px;
+        svg {
           font-size: 1rem;
-          color: #333;
-          white-space: nowrap;
         }
 
-        .sort-select {
-          padding: 10px 15px;
+        @media (max-width: 576px) {
+          font-size: 0.9rem;
+
+          svg {
+            font-size: 0.9rem;
+          }
+        }
+      }
+
+      .sort-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #fff;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+          border-color: #4a90e2;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #4a90e2;
+        }
+
+        svg {
+          margin-left: 5px;
+          font-size: 1rem;
+        }
+
+        @media (max-width: 576px) {
+          padding: 6px 10px;
+          font-size: 0.8rem;
+
+          svg {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #333;
+
+        svg {
+          font-size: 1rem;
+        }
+
+        @media (max-width: 576px) {
+          font-size: 0.9rem;
+
+          svg {
+            font-size: 0.9rem;
+          }
+        }
+      }
+
+      .search-container {
+        position: relative;
+        width: 200px;
+
+        @media (max-width: 576px) {
+          width: 150px;
+        }
+
+        input {
+          padding: 8px 12px 8px 35px;
           border: 1px solid #ddd;
           border-radius: 5px;
-          background-color: #fff;
-          cursor: pointer;
+          width: 100%;
           transition: border-color 0.3s ease;
           font-size: 0.9rem;
-          display: flex;
-          align-items: center;
-
-          &:hover {
-            border-color: #4a90e2;
-          }
 
           &:focus {
             outline: none;
             border-color: #4a90e2;
           }
 
-          svg {
-            margin-left: 5px;
-          }
-        }
-      }
-
-      .search {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-
-        label {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          font-size: 1rem;
-          font-weight: bold;
-          color: #333;
-        }
-
-        .search-container {
-          position: relative;
-          width: 200px;
-
-          input {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+          @media (max-width: 576px) {
+            padding: 6px 10px 6px 30px;
+            font-size: 0.65rem;
             width: 100%;
-            transition: border-color 0.3s ease;
-            font-size: 0.9rem;
-            padding-left: 30px; /* Added padding for search icon */
-
-            &:focus {
-              outline: none;
-              border-color: #4a90e2;
-            }
-          }
-
-          svg {
-            position: absolute;
-            top: 50%;
-            left: 10px;
-            transform: translateY(-50%);
-            color: #aaa;
           }
         }
-      }
-    }
 
-    .clear-filters-container {
-      display: flex;
-      justify-content: center;
-      width: 100%;
+        svg {
+          position: absolute;
+          top: 50%;
+          left: 12px;
+          transform: translateY(-50%);
+          color: #aaa;
+          font-size: 1rem;
 
-      @media (min-width: 992px) {
-        justify-content: flex-start;
-        width: auto;
+          @media (max-width: 576px) {
+            left: 10px;
+            font-size: 0.9rem;
+          }
+        }
       }
     }
   }
 
+  /* No Results Message */
+  p.no-results {
+    font-size: 1rem;
+    color: #666;
+    margin-top: 15px;
+    text-align: center; /* Center align the message */
+
+    @media (max-width: 576px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Category Section */
   .category {
-    margin: 30px 0;
+    margin: 20px 0;
 
     h2 {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: #4a90e2;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 5px;
-      justify-content: center; /* Center the category header */
+      justify-content: center;
 
       svg {
         color: #4a90e2;
+        font-size: 1.2rem;
+      }
+
+      @media (max-width: 576px) {
+        font-size: 1.4rem;
+
+        svg {
+          font-size: 1rem;
+        }
+      }
+
+      @media (min-width: 768px) {
+        justify-content: flex-start; /* Align titles to the left on desktop */
       }
     }
 
     hr {
       border: 1px solid #ddd;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
   }
 
+  /* Menu Items Grid */
   .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -261,123 +477,73 @@ const MenuContainer = styled.div`
     }
 
     @media (max-width: 767px) {
-      display: flex;
-      flex-direction: column; /* Stack items vertically */
-      align-items: center; /* Center items horizontally */
-      gap: 20px; /* Add spacing between items */
+      grid-template-columns: repeat(1, 1fr); /* Single column on mobile */
+      gap: 15px; /* Reduced gap */
+      padding: 0 5px;
     }
   }
-
-  p.no-results {
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 20px;
-  }
 `;
 
-// Styled component for individual tag buttons
-const TagButton = styled.button`
-  padding: 8px 12px;
-  border: 1px solid #4a90e2;
-  border-radius: 20px;
-  background-color: ${({ selected }) => (selected ? "#4a90e2" : "#fff")};
-  color: ${({ selected }) => (selected ? "#fff" : "#4a90e2")};
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 0.9rem;
-  box-sizing: border-box;
-  font-weight: normal;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-
-  &:hover {
-    background-color: ${({ selected }) => (selected ? "#357ab8" : "#4a90e2")};
-    color: #fff;
-  }
-
-  &:focus {
-    outline: 2px solid rgba(74, 144, 226, 0.5);
-    outline-offset: 0px;
-  }
-`;
-
-// Styled component for the "Clear Filters" button
-const ClearFiltersButton = styled.button`
-  padding: 8px 12px;
-  border: 1px solid #ff4d4d;
-  border-radius: 20px;
-  background-color: ${({ selected }) => (selected ? "#ff4d4d" : "#fff")};
-  color: ${({ selected }) => (selected ? "#fff" : "#ff4d4d")};
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-
-  &:hover {
-    background-color: ${({ selected }) => (selected ? "#cc0000" : "#ff4d4d")};
-    color: #fff;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &:focus {
-    outline: 2px solid rgba(255, 77, 77, 0.5);
-    outline-offset: 0px;
-  }
-`;
-
+// Define the categories array inside the component to ensure it's in scope
 const MenuPage = () => {
+  // Define the categories array here
+  const categories = useMemo(
+    () => [
+      { name: "All Items", icon: <FaList /> },
+      { name: "Food", icon: <FaUtensils /> },
+      { name: "Drinks", icon: <FaGlassCheers /> },
+      { name: "Desserts", icon: <FaCookie /> },
+      // Add more categories as needed
+    ],
+    []
+  );
+
   const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All Items");
   const [sortOption, setSortOption] = useState("popularity");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { addItem, removeItem } = useContext(CartContext);
+  const { addItem } = useContext(CartContext);
 
   // Define filter categories and their respective tags
   const filterCategories = useMemo(() => {
-    const categories = {};
+    const categoriesMap = {};
 
     menuData.forEach((item) => {
       item.tags.forEach((tag) => {
         // Determine the group/category of each tag
         if (["Alcoholic", "Non-Alcoholic"].includes(tag)) {
-          categories["Beverage Type"] =
-            categories["Beverage Type"] || new Set();
-          categories["Beverage Type"].add(tag);
+          categoriesMap["Beverage Type"] =
+            categoriesMap["Beverage Type"] || new Set();
+          categoriesMap["Beverage Type"].add(tag);
         } else if (["Vegan", "Vegetarian", "Gluten-Free"].includes(tag)) {
-          categories["Dietary"] = categories["Dietary"] || new Set();
-          categories["Dietary"].add(tag);
+          categoriesMap["Dietary"] = categoriesMap["Dietary"] || new Set();
+          categoriesMap["Dietary"].add(tag);
         } else if (
           ["Breakfast", "Lunch", "Dinner", "Appetizer"].includes(tag)
         ) {
-          categories["Meal Type"] = categories["Meal Type"] || new Set();
-          categories["Meal Type"].add(tag);
+          categoriesMap["Meal Type"] = categoriesMap["Meal Type"] || new Set();
+          categoriesMap["Meal Type"].add(tag);
         } else if (["Spicy", "Sweet"].includes(tag)) {
-          categories["Flavor Profile"] =
-            categories["Flavor Profile"] || new Set();
-          categories["Flavor Profile"].add(tag);
+          categoriesMap["Flavor Profile"] =
+            categoriesMap["Flavor Profile"] || new Set();
+          categoriesMap["Flavor Profile"].add(tag);
         } else {
-          categories["Miscellaneous"] =
-            categories["Miscellaneous"] || new Set();
-          categories["Miscellaneous"].add(tag);
+          categoriesMap["Miscellaneous"] =
+            categoriesMap["Miscellaneous"] || new Set();
+          categoriesMap["Miscellaneous"].add(tag);
         }
       });
     });
 
     // Convert sets to arrays and sort them
     const sortedCategories = {};
-    Object.keys(categories).forEach((category) => {
-      sortedCategories[category] = Array.from(categories[category]).sort();
+    Object.keys(categoriesMap).forEach((category) => {
+      sortedCategories[category] = Array.from(categoriesMap[category]).sort();
     });
 
     return sortedCategories;
-  }, []);
+  }, [menuData]);
 
   // Handle tag button click
   const toggleTag = (tag) => {
@@ -388,6 +554,12 @@ const MenuPage = () => {
     );
   };
 
+  // Handle category button click
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSelectedTags([]);
+  };
+
   // Handle sort option change
   const handleSortChange = (e) => {
     setSortOption(e.target.value);
@@ -396,6 +568,7 @@ const MenuPage = () => {
   // Handle clearing all filters
   const clearFilters = () => {
     setSelectedTags([]);
+    setSelectedCategory("All Items");
     setSearchQuery("");
     toast.info("All filters have been cleared.", {
       position: "bottom-right",
@@ -408,9 +581,16 @@ const MenuPage = () => {
     });
   };
 
-  // Filter and sort menu items based on selected tags, sort option, and search query
+  // Filter and sort menu items based on selected category, tags, sort option, and search query
   const filteredAndSortedMenu = useMemo(() => {
     let filtered = menuData;
+
+    // Category Filtering
+    if (selectedCategory !== "All Items") {
+      filtered = filtered.filter(
+        (item) => item.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
 
     // Tag Filtering
     if (selectedTags.length > 0) {
@@ -435,7 +615,7 @@ const MenuPage = () => {
     });
 
     return sorted;
-  }, [selectedTags, sortOption, searchQuery]);
+  }, [selectedCategory, selectedTags, sortOption, searchQuery]);
 
   // Group menu items by category for display
   const groupedMenu = useMemo(() => {
@@ -452,6 +632,22 @@ const MenuPage = () => {
     Dietary: <FaLeaf />,
     "Beverage Type": <FaGlassCheers />,
     "Flavor Profile": <FaFire />,
+    Miscellaneous: <FaFilter />,
+  };
+
+  // Mapping tags to icons for filter categories
+  const tagIconMapping = {
+    Vegan: <FaLeaf />,
+    Vegetarian: <FaLeaf />,
+    Spicy: <FaFire />,
+    "Gluten-Free": <FaLeaf />, // aligned with the previous mapping
+    Alcoholic: <FaWineBottle />,
+    "Non-Alcoholic": <FaGlassCheers />, // aligned with the previous mapping
+    Sweet: <FaCookie />, // aligned with the previous mapping
+    Breakfast: <FaCoffee />, // aligned with the previous mapping
+    Lunch: <FaHamburger />, // aligned with the previous mapping
+    Dinner: <FaUtensils />,
+    Appetizer: <FaGlassMartiniAlt />, // aligned with the previous mapping
     Miscellaneous: <FaFilter />,
   };
 
@@ -487,18 +683,22 @@ const MenuPage = () => {
         </div>
 
         {/* Clear Filters Button */}
-        {selectedTags.length > 0 && (
+        {(selectedTags.length > 0 || selectedCategory !== "All Items") && (
           <div className="clear-filters-container">
             <ClearFiltersButton
               onClick={clearFilters}
-              disabled={selectedTags.length === 0}
+              disabled={
+                selectedTags.length === 0 && selectedCategory === "All Items"
+              }
               aria-label="Clear All Filters"
             >
               <FaTimes /> Clear Filters
             </ClearFiltersButton>
           </div>
         )}
-
+      </div>
+      {/* Controls Section: Sort By, Category Buttons, Search */}
+      <div className="controls">
         {/* Sort and Search */}
         <div className="sort-search">
           {/* Sort Dropdown */}
@@ -519,6 +719,21 @@ const MenuPage = () => {
             </select>
           </div>
 
+          {/* Category Buttons */}
+          <CategoryButtons>
+            {categories.map((category) => (
+              <CategoryButton
+                key={category.name}
+                onClick={() => handleCategorySelect(category.name)}
+                selected={selectedCategory === category.name}
+                aria-pressed={selectedCategory === category.name}
+                aria-label={`Filter by ${category.name}`}
+              >
+                {category.icon} {category.name}
+              </CategoryButton>
+            ))}
+          </CategoryButtons>
+
           {/* Search Bar */}
           <div className="search">
             <label htmlFor="search-input">
@@ -538,6 +753,7 @@ const MenuPage = () => {
           </div>
         </div>
       </div>
+      {/* Display Menu Items */}
       {Object.keys(groupedMenu).length === 0 ? (
         <p className="no-results">No menu items match the selected filters.</p>
       ) : (
@@ -557,22 +773,6 @@ const MenuPage = () => {
       )}
     </MenuContainer>
   );
-};
-
-// Mapping tags to icons for filter categories
-const tagIconMapping = {
-  Vegan: <FaLeaf />,
-  Vegetarian: <FaLeaf />,
-  Spicy: <FaFire />,
-  "Gluten-Free": <FaLeaf />, // aligned with the previous mapping
-  Alcoholic: <FaWineBottle />,
-  "Non-Alcoholic": <FaGlassCheers />, // aligned with the previous mapping
-  Sweet: <FaCookie />, // aligned with the previous mapping
-  Breakfast: <FaCoffee />, // aligned with the previous mapping
-  Lunch: <FaHamburger />, // aligned with the previous mapping
-  Dinner: <FaUtensils />,
-  Appetizer: <FaGlassMartiniAlt />, // aligned with the previous mapping
-  Miscellaneous: <FaFilter />,
 };
 
 export default MenuPage;
