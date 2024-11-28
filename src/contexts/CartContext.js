@@ -10,12 +10,19 @@ const initialState = {
 
 // Helper function to compare two customization objects
 const areCustomizationsEqual = (custom1, custom2) => {
+  if (!custom1 && !custom2) return true;
   if (!custom1 || !custom2) return false;
   const keys1 = Object.keys(custom1);
   const keys2 = Object.keys(custom2);
   if (keys1.length !== keys2.length) return false;
   for (let key of keys1) {
-    if (custom1[key].sort().join(",") !== custom2[key].sort().join(",")) {
+    const val1 = custom1[key];
+    const val2 = custom2[key];
+    if (Array.isArray(val1) && Array.isArray(val2)) {
+      if (val1.sort().join(",") !== val2.sort().join(",")) {
+        return false;
+      }
+    } else if (val1 !== val2) {
       return false;
     }
   }

@@ -1,7 +1,7 @@
 // src/pages/OrderStatusPage.js
 
 import React, { useState, useContext, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import { OrderContext } from "../contexts/OrderContext";
 import styled from "styled-components";
 import BackButton from "../components/BackButton";
@@ -98,6 +98,7 @@ const ProgressBar = styled.div`
 const StatusText = styled.p`
   font-size: 1.2rem;
   font-weight: bold;
+  margin-top: 10px; /* Add some spacing above the status text */
 `;
 
 const OrderDetails = styled.div`
@@ -125,14 +126,19 @@ const OrderDetails = styled.div`
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: center; /* Center the buttons horizontally */
-  gap: 10px; /* Space between buttons */
+  gap: 20px; /* Increased gap between buttons */
   margin-top: 20px;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    gap: 15px;
+  }
 `;
 
 const ActionButton = styled.button`
   padding: 10px 20px;
   font-size: 1rem;
-  background-color: #4a90e2;
+  background-color: ${({ cancel }) => (cancel ? "#ff4d4d" : "#4a90e2")};
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -140,7 +146,7 @@ const ActionButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #357ab8;
+    background-color: ${({ cancel }) => (cancel ? "#cc0000" : "#357ab8")};
   }
 
   &:disabled {
@@ -151,15 +157,15 @@ const ActionButton = styled.button`
 
 const OrderStatusPage = () => {
   const { getOrderById } = useContext(OrderContext);
-  const location = useLocation(); // Access location
-  const navigate = useNavigate(); // For navigation
+  const location = useLocation();
+  const navigate = useNavigate();
   const [orderIdInput, setOrderIdInput] = useState("");
   const [order, setOrder] = useState(null);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
   const [intervalId, setIntervalId] = useState(null);
-  const [autoTrack, setAutoTrack] = useState(false); // To prevent multiple auto-tracks
-  const [isVerified, setIsVerified] = useState(false); // New state
+  const [autoTrack, setAutoTrack] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     if (location.state?.orderId && !autoTrack) {
@@ -242,14 +248,20 @@ const OrderStatusPage = () => {
     setAutoTrack(false);
     // Clear any existing intervals
     if (intervalId) clearInterval(intervalId);
+    toast.info("Tracking of another order has been initiated.", {
+      position: "bottom-right",
+      autoClose: 1500,
+      hideProgressBar: true,
+      pauseOnHover: true,
+      draggable: false,
+      icon: "ℹ️",
+    });
   };
 
   const handleRequestServices = () => {
     if (isVerified && order) {
-      // Navigate to RequestServicesPage with orderId
       navigate("/request-services", { state: { orderId: order.orderId } });
     } else {
-      // If not verified, navigate without orderId (user needs to enter it)
       navigate("/request-services");
     }
   };

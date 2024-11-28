@@ -25,6 +25,10 @@ const GlobalStyle = createGlobalStyle`
     color: #333;
   }
 
+  html {
+    overflow-y: scroll; /* Ensures a vertical scrollbar is always present */
+  }
+
   * {
     box-sizing: border-box;
   }

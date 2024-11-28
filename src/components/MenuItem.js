@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { CartContext } from "../contexts/CartContext";
 import fallbackImage from "../assets/fallback.png";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 import {
   FaStar,
   FaStarHalfAlt,
@@ -21,43 +20,38 @@ import {
   FaCoffee,
   FaFilter,
 } from "react-icons/fa";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const MenuItemCard = styled.div`
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 300px;
-  margin: 10px auto; /* Added vertical margin for spacing */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
     transform: scale(1.02);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   }
 
-  @media (max-width: 576px) {
-    max-width: 100%; /* Full width on mobile */
-    margin: 10px 0; /* Vertical spacing only */
-  }
-
   .image-wrapper {
     width: 100%;
-    height: 180px; /* Reduced height for mobile */
+    height: 180px; /* Fixed height to ensure all images are the same size */
     background-color: #f9f9f9;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 8px; /* Rounded corners for the wrapper */
 
-    img {
+    .food-image {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      border-radius: 12px;
+      object-fit: cover; /* Ensures uniform size by cropping excess content */
+      border-radius: 8px; /* Ensures the image follows the wrapper's rounded corners */
     }
   }
 
@@ -65,31 +59,14 @@ const MenuItemCard = styled.div`
     padding: 15px;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Allows the details section to grow and fill space */
+    flex-grow: 1;
     text-align: left;
 
-    @media (max-width: 576px) {
-      padding: 10px; /* Reduced padding on mobile */
-    }
-
-    h3 {
-      font-size: 1.2rem;
-      color: #333;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      @media (max-width: 576px) {
-        font-size: 1rem;
-      }
-    }
-
     .tags {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 6px;
-      justify-items: center; /* Center tags within their grid cell */
+      margin-bottom: 8px;
 
       span {
         display: flex;
@@ -100,19 +77,22 @@ const MenuItemCard = styled.div`
         padding: 3px 7px;
         border-radius: 15px;
         font-size: 0.7rem;
-
-        @media (max-width: 576px) {
-          font-size: 0.6rem;
-          padding: 2px 5px;
-        }
       }
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: #333;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .rating {
       display: flex;
       align-items: center;
       gap: 3px;
-      margin-top: 8px;
       margin-bottom: 8px;
 
       .stars {
@@ -125,46 +105,32 @@ const MenuItemCard = styled.div`
         font-size: 0.7rem;
         color: #666;
       }
-
-      @media (max-width: 576px) {
-        .num-reviews {
-          font-size: 0.6rem;
-        }
-      }
     }
 
     .description {
       margin: 5px 0;
       font-size: 0.85rem;
       color: #666;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      /* Removed line-clamp styles to allow dynamic height */
+    }
 
-      @media (max-width: 576px) {
-        font-size: 0.75rem;
+    .read-more-button {
+      background: none;
+      border: none;
+      color: #4a90e2;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0;
+      margin-top: 5px;
+      text-decoration: underline;
+
+      &:hover {
+        color: #357ab8;
       }
 
-      .read-more {
-        color: #4a90e2;
-        cursor: pointer;
-        text-decoration: underline;
-        font-weight: bold;
-        margin-left: 5px;
-        flex-shrink: 0; /* Prevents the read-more from wrapping */
-
-        &:hover {
-          color: #357ab8;
-        }
-
-        &:focus {
-          outline: 2px solid rgba(74, 144, 226, 0.5);
-          outline-offset: 0px;
-        }
-
-        @media (max-width: 576px) {
-          font-size: 0.7rem;
-        }
+      &:focus {
+        outline: none;
+        text-decoration: none;
       }
     }
 
@@ -173,24 +139,20 @@ const MenuItemCard = styled.div`
       font-size: 1.1rem;
       color: #4a90e2;
       margin-top: 8px;
-
-      @media (max-width: 576px) {
-        font-size: 1rem;
-      }
     }
   }
 `;
 
 const AddToCartButton = styled.button`
-  margin-top: auto; /* Pushes the button to the bottom of the card */
-  padding: 10px 15px;
+  margin-top: auto;
+  padding: 8px 12px;
   background-color: #4a90e2;
   border: none;
   border-radius: 5px;
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 
   &:hover {
     background-color: #357ab8;
@@ -203,16 +165,9 @@ const AddToCartButton = styled.button`
 
   &:focus {
     outline: 2px solid rgba(74, 144, 226, 0.5);
-    outline-offset: 0px;
-  }
-
-  @media (max-width: 576px) {
-    padding: 8px 12px;
-    font-size: 0.8rem;
   }
 `;
 
-// Styled Components for the Customization Modal
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -227,36 +182,19 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: ${({ theme }) => theme.modalBg || "#fff"};
+  background: #fff;
   padding: 25px;
-  border-radius: ${({ theme }) => theme.borderRadius || "10px"};
+  border-radius: 10px;
   width: 90%;
   max-width: 450px;
-  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-out;
   position: relative;
   display: flex;
   flex-direction: column;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-15px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 
   h2 {
     margin-top: 0;
     color: #333;
     font-size: 1.4rem;
-
-    @media (max-width: 576px) {
-      font-size: 1.2rem;
-    }
   }
 
   .customization-options {
@@ -266,10 +204,6 @@ const ModalContent = styled.div`
     h4 {
       font-size: 1rem;
       margin-bottom: 10px;
-
-      @media (max-width: 576px) {
-        font-size: 0.9rem;
-      }
     }
 
     label {
@@ -279,16 +213,7 @@ const ModalContent = styled.div`
       margin-bottom: 8px;
 
       input {
-        transform: scale(1.1); /* Larger checkboxes/radio buttons for touch */
-      }
-
-      @media (max-width: 576px) {
-        flex-direction: column;
-        align-items: flex-start;
-
-        input {
-          margin-right: 0;
-        }
+        transform: scale(1.1);
       }
     }
   }
@@ -298,11 +223,6 @@ const ModalContent = styled.div`
     justify-content: flex-end;
     gap: 10px;
     margin-top: 15px;
-
-    @media (max-width: 576px) {
-      flex-direction: column;
-      align-items: stretch;
-    }
   }
 `;
 
@@ -314,21 +234,14 @@ const CloseButton = styled.button`
   border: none;
   font-size: 22px;
   cursor: pointer;
-  color: ${({ theme }) => theme.textColor || "#333"};
+  color: #333;
 
   &:hover {
-    color: ${({ theme }) => theme.accentColor || "#4a90e2"};
+    color: #4a90e2;
   }
 
   &:focus {
     outline: 2px solid rgba(74, 144, 226, 0.5);
-    outline-offset: 0px;
-  }
-
-  @media (max-width: 576px) {
-    font-size: 18px;
-    top: 10px;
-    right: 10px;
   }
 `;
 
@@ -353,13 +266,6 @@ const ConfirmButton = styled.button`
 
   &:focus {
     outline: 2px solid rgba(74, 144, 226, 0.5);
-    outline-offset: 0px;
-  }
-
-  @media (max-width: 576px) {
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    width: 100%; /* Make buttons full-width on small screens */
   }
 `;
 
@@ -379,29 +285,21 @@ const CancelButton = styled.button`
 
   &:focus {
     outline: 2px solid rgba(204, 204, 204, 0.7);
-    outline-offset: 0px;
-  }
-
-  @media (max-width: 576px) {
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    width: 100%; /* Make buttons full-width on small screens */
   }
 `;
 
-// Mapping tags to icons
 const tagIconMapping = {
   Vegan: <FaLeaf />,
   Vegetarian: <FaLeaf />,
+  "Gluten-Free": <FaLeaf />,
   Spicy: <FaFire />,
-  "Gluten-Free": <FaLeaf />, // aligned with the previous mapping
   Alcoholic: <FaWineBottle />,
-  "Non-Alcoholic": <FaGlassCheers />, // aligned with the previous mapping
-  Sweet: <FaCookie />, // aligned with the previous mapping
-  Breakfast: <FaCoffee />, // aligned with the previous mapping
-  Lunch: <FaHamburger />, // aligned with the previous mapping
+  "Non-Alcoholic": <FaGlassCheers />,
+  Sweet: <FaCookie />,
+  Breakfast: <FaCoffee />,
+  Lunch: <FaHamburger />,
   Dinner: <FaUtensils />,
-  Appetizer: <FaGlassMartiniAlt />, // aligned with the previous mapping
+  Appetizer: <FaGlassMartiniAlt />,
   Miscellaneous: <FaFilter />,
 };
 
@@ -420,14 +318,13 @@ const MenuItem = React.memo(
     const [imgSrc, setImgSrc] = useState(image);
     const { addItem } = useContext(CartContext);
     const [isAdding, setIsAdding] = useState(false);
-    const navigate = useNavigate();
 
     // Customization State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOptions, setSelectedOptions] = useState({});
 
-    // Description Truncation State
-    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    // Description Expansion State
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleError = () => {
       setImgSrc(fallbackImage);
@@ -435,10 +332,8 @@ const MenuItem = React.memo(
 
     const handleAddToCartClick = () => {
       if (customizations && customizations.length > 0) {
-        // Open customization modal
         setIsModalOpen(true);
       } else {
-        // No customizations, add directly
         handleAddItem({});
       }
     };
@@ -471,13 +366,11 @@ const MenuItem = React.memo(
           ? prev[category]
           : [];
         if (currentOptions.includes(option)) {
-          // Remove the option
           return {
             ...prev,
             [category]: currentOptions.filter((opt) => opt !== option),
           };
         } else {
-          // Add the option
           return {
             ...prev,
             [category]: [...currentOptions, option],
@@ -497,7 +390,10 @@ const MenuItem = React.memo(
       setSelectedOptions({});
     };
 
-    // Function to render star ratings
+    const toggleExpanded = () => {
+      setIsExpanded((prev) => !prev);
+    };
+
     const renderStars = (rating) => {
       const stars = [];
       const fullStars = Math.floor(rating);
@@ -520,31 +416,35 @@ const MenuItem = React.memo(
       return stars;
     };
 
-    // Function to toggle description expansion
-    const toggleDescription = () => {
-      setIsDescriptionExpanded((prev) => !prev);
+    // Function to truncate description to first 7 words
+    const truncateDescription = (text, wordLimit) => {
+      const words = text.split(" ");
+      if (words.length <= wordLimit) {
+        return text;
+      }
+      const truncated = words.slice(0, wordLimit).join(" ");
+      return truncated;
     };
 
-    // Function to get truncated description
-    const getTruncatedDescription = (text, wordLimit) => {
-      const words = text.split(" ");
-      if (words.length <= wordLimit) return text;
-      return words.slice(0, wordLimit).join(" ") + "...";
-    };
+    const wordLimit = 7;
+    const isLongDescription = description.split(" ").length > wordLimit;
+    const displayedDescription = isExpanded
+      ? description
+      : truncateDescription(description, wordLimit);
 
     return (
       <>
         <MenuItemCard>
           <div className="image-wrapper">
-            <img src={imgSrc} alt={name} loading="lazy" onError={handleError} />
+            <LazyLoadImage
+              src={imgSrc}
+              alt={name}
+              onError={handleError}
+              effect="blur"
+              className="food-image"
+            />
           </div>
           <div className="details">
-            <h3>
-              {name}{" "}
-              {(tags.includes("Vegan") || tags.includes("Vegetarian")) && (
-                <FaLeaf title="Vegetarian/Vegan" />
-              )}
-            </h3>
             <div className="tags">
               {tags.map((tag, index) => (
                 <span key={index}>
@@ -552,27 +452,30 @@ const MenuItem = React.memo(
                 </span>
               ))}
             </div>
+            <h3>
+              {name}{" "}
+              {(tags.includes("Vegan") || tags.includes("Vegetarian")) && (
+                <FaLeaf title="Vegetarian/Vegan" />
+              )}
+            </h3>
             <div className="rating">
               <div className="stars">{renderStars(rating)}</div>
               <div className="num-reviews">({numReviews} reviews)</div>
             </div>
             <p className="description">
-              {isDescriptionExpanded
-                ? description
-                : getTruncatedDescription(description, 6)}
-              {description.split(" ").length > 6 && (
-                <span
-                  className="read-more"
-                  onClick={toggleDescription}
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" || e.key === " ") toggleDescription();
-                  }}
-                  aria-expanded={isDescriptionExpanded}
+              {displayedDescription}
+              {isLongDescription && (
+                <button
+                  className="read-more-button"
+                  onClick={toggleExpanded}
+                  aria-label={
+                    isExpanded
+                      ? " ...Read less about " + name
+                      : " ...Read more about " + name
+                  }
                 >
-                  {isDescriptionExpanded ? " Read Less" : " Read More"}
-                </span>
+                  {isExpanded ? "Read Less" : "  ...Read More"}
+                </button>
               )}
             </p>
             <p className="price">${price.toFixed(2)}</p>

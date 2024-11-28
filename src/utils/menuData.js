@@ -17,7 +17,7 @@ import Pancakes from "../assets/pancakes.webp";
 import Pepsi from "../assets/pepsi.webp";
 import RedWine from "../assets/redwine.webp";
 import RootBeer from "../assets/rootbeer.webp";
-import Salmon from "../assets/salmon.jpeg";
+import Salmon from "../assets/salmon.webp";
 import Smoothie from "../assets/smoothie.webp";
 import Spaghetti from "../assets/spaghetti.webp";
 import SteakFrites from "../assets/steakfrites.webp";
@@ -54,7 +54,7 @@ const menuData = [
     ],
   },
   {
-    id: 0,
+    id: 2,
     name: "Pizza",
     category: "Food",
     price: 14.99,
@@ -81,7 +81,7 @@ const menuData = [
     ],
   },
   {
-    id: 2,
+    id: 3,
     name: "Breakfast Burrito",
     category: "Food",
     price: 9.99,
@@ -105,8 +105,9 @@ const menuData = [
       },
     ],
   },
+  // ... Continue assigning unique IDs to all items
   {
-    id: 3,
+    id: 4,
     name: "Caesar Salad",
     category: "Food",
     price: 10.99,
@@ -131,7 +132,7 @@ const menuData = [
     ],
   },
   {
-    id: 4,
+    id: 5,
     name: "Garlic Bread",
     category: "Food",
     price: 5.49,
@@ -151,7 +152,7 @@ const menuData = [
     ],
   },
   {
-    id: 5,
+    id: 6,
     name: "Omelette",
     category: "Food",
     price: 7.99,
@@ -171,7 +172,7 @@ const menuData = [
     ],
   },
   {
-    id: 6,
+    id: 7,
     name: "Pancakes",
     category: "Food",
     price: 8.49,
@@ -201,7 +202,7 @@ const menuData = [
     ],
   },
   {
-    id: 7,
+    id: 8,
     name: "Salmon",
     category: "Food",
     price: 18.99,
@@ -226,7 +227,7 @@ const menuData = [
     ],
   },
   {
-    id: 8,
+    id: 9,
     name: "Spaghetti",
     category: "Food",
     price: 12.49,
@@ -251,7 +252,7 @@ const menuData = [
     ],
   },
   {
-    id: 9,
+    id: 10,
     name: "Steak Frites",
     category: "Food",
     price: 19.99,
@@ -276,7 +277,7 @@ const menuData = [
     ],
   },
   {
-    id: 10,
+    id: 11,
     name: "Stuffed Mushrooms",
     category: "Food",
     price: 8.99,
@@ -296,7 +297,7 @@ const menuData = [
     ],
   },
   {
-    id: 11,
+    id: 12,
     name: "Wings",
     category: "Food",
     price: 10.99,
@@ -328,7 +329,7 @@ const menuData = [
 
   // Desserts
   {
-    id: 12,
+    id: 13,
     name: "Cheesecake",
     category: "Desserts",
     price: 6.99,
@@ -358,7 +359,7 @@ const menuData = [
     ],
   },
   {
-    id: 12,
+    id: 14,
     name: "Kunafa",
     category: "Desserts",
     price: 12.99,
@@ -388,7 +389,7 @@ const menuData = [
     ],
   },
   {
-    id: 13,
+    id: 15,
     name: "Chocolate Cake",
     category: "Desserts",
     price: 6.99,
@@ -418,7 +419,7 @@ const menuData = [
     ],
   },
   {
-    id: 14,
+    id: 16,
     name: "Sundae",
     category: "Desserts",
     price: 4.99,
@@ -455,7 +456,7 @@ const menuData = [
 
   // Drinks
   {
-    id: 15,
+    id: 17,
     name: "Beer",
     category: "Drinks",
     price: 4.99,
@@ -485,7 +486,7 @@ const menuData = [
     ],
   },
   {
-    id: 16,
+    id: 18,
     name: "Iced Tea",
     category: "Drinks",
     price: 3.99,
@@ -515,7 +516,7 @@ const menuData = [
     ],
   },
   {
-    id: 17,
+    id: 19,
     name: "Lemonade",
     category: "Drinks",
     price: 3.49,
@@ -545,7 +546,7 @@ const menuData = [
     ],
   },
   {
-    id: 18,
+    id: 20,
     name: "Margarita",
     category: "Drinks",
     price: 8.99,
@@ -575,7 +576,7 @@ const menuData = [
     ],
   },
   {
-    id: 19,
+    id: 21,
     name: "Mojito",
     category: "Drinks",
     price: 7.99,
@@ -605,7 +606,7 @@ const menuData = [
     ],
   },
   {
-    id: 20,
+    id: 22,
     name: "Pepsi",
     category: "Drinks",
     price: 2.99,
@@ -630,7 +631,7 @@ const menuData = [
     ],
   },
   {
-    id: 21,
+    id: 23,
     name: "Red Wine",
     category: "Drinks",
     price: 9.99,
@@ -660,7 +661,7 @@ const menuData = [
     ],
   },
   {
-    id: 22,
+    id: 24,
     name: "Root Beer",
     category: "Drinks",
     price: 3.49,
@@ -690,7 +691,7 @@ const menuData = [
     ],
   },
   {
-    id: 23,
+    id: 25,
     name: "Smoothie",
     category: "Drinks",
     price: 5.99,
@@ -720,7 +721,7 @@ const menuData = [
     ],
   },
   {
-    id: 24,
+    id: 26,
     name: "White Wine",
     category: "Drinks",
     price: 8.99,
@@ -750,7 +751,7 @@ const menuData = [
     ],
   },
   {
-    id: 25,
+    id: 27,
     name: "Coca Cola",
     category: "Drinks",
     price: 4.99,
@@ -775,7 +776,7 @@ const menuData = [
     ],
   },
   {
-    id: 26,
+    id: 28,
     name: "7 Up",
     category: "Drinks",
     price: 4.99,

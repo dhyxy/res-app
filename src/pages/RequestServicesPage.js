@@ -1,7 +1,7 @@
 // src/pages/RequestServicesPage.js
 
 import React, { useState, useContext, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import { OrderContext } from "../contexts/OrderContext";
 import styled from "styled-components";
 import BackButton from "../components/BackButton";
@@ -156,7 +156,7 @@ const ButtonContainer = styled.div`
 const ActionButton = styled.button`
   padding: 10px 20px;
   font-size: 1rem;
-  background-color: #4a90e2;
+  background-color: ${({ cancel }) => (cancel ? "#ff4d4d" : "#4a90e2")};
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -164,7 +164,7 @@ const ActionButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #357ab8;
+    background-color: ${({ cancel }) => (cancel ? "#cc0000" : "#357ab8")};
   }
 
   &:disabled {
@@ -175,16 +175,16 @@ const ActionButton = styled.button`
 
 const RequestServicesPage = () => {
   const { getOrderById } = useContext(OrderContext);
-  const location = useLocation(); // Access location
-  const navigate = useNavigate(); // For navigation
+  const location = useLocation();
+  const navigate = useNavigate();
   const [orderId, setOrderId] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
   const [otherRequest, setOtherRequest] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [autoVerify, setAutoVerify] = useState(false); // To prevent multiple auto-verifies
-  const [orderDetails, setOrderDetails] = useState(null); // For displaying order details
+  const [autoVerify, setAutoVerify] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
 
   useEffect(() => {
     if (location.state?.orderId && !autoVerify) {
@@ -309,7 +309,7 @@ const RequestServicesPage = () => {
   };
 
   const handleRequestAnotherService = () => {
-    // Reset state to allow requesting services for another order
+    // Set the action to be canceled
     setIsVerified(false);
     setOrderId("");
     setTableNumber("");
@@ -317,14 +317,20 @@ const RequestServicesPage = () => {
     setOtherRequest("");
     setOrderDetails(null);
     setAutoVerify(false);
+    toast.info("Request for another service has been initiated.", {
+      position: "bottom-right",
+      autoClose: 1500,
+      hideProgressBar: true,
+      pauseOnHover: true,
+      draggable: false,
+      icon: "ℹ️",
+    });
   };
 
   const handleTrackOrder = () => {
     if (isVerified && orderDetails) {
-      // Navigate to OrderStatusPage with orderId
       navigate("/order-status", { state: { orderId: orderDetails.orderId } });
     } else {
-      // If not verified, navigate without orderId (user needs to enter it)
       navigate("/order-status");
     }
   };
