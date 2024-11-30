@@ -1,18 +1,19 @@
+// src/pages/CheckoutPage.js
+
 import React, { useState, useContext, useMemo } from "react";
 import styled from "styled-components";
 import { CartContext } from "../contexts/CartContext";
 import { OrderContext } from "../contexts/OrderContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import SuccessModal from "./SuccessModal";
-import ConfirmModal from "./ConfirmModal";
-import PaymentConfirmationModal from "./PaymentConfirmationModal";
+import SuccessModal from "../components/SuccessModal";
+import ConfirmModal from "../components/ConfirmModal";
+import PaymentConfirmationModal from "../components/PaymentConfirmationModal";
 import menuData from "../utils/menuData";
 import GooglePayLogo from "../assets/google-pay-logo.svg";
 import ApplePayLogo from "../assets/apple-pay-logo.svg";
 import PayPalLogo from "../assets/paypal-logo.svg";
 import BackButton from "../components/BackButton";
-import PropTypes from "prop-types";
 
 // Constants
 const TAX_RATE = 0.05; // 5% tax
@@ -758,6 +759,10 @@ const CloseButton = styled.button`
     color: #4a90e2;
   }
 
+  &:focus {
+    outline: 2px solid #4a90e2;
+  }
+
   @media (max-width: 480px) {
     top: 10px;
     right: 10px;
@@ -891,7 +896,7 @@ const CheckoutPage = () => {
   const [orderId, setOrderId] = useState(null);
 
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
-  const [removeItemIndex, setRemoveItemIndex] = useState(null);
+  const [removeItemData, setRemoveItemData] = useState(null);
 
   const [paymentMethod, setPaymentMethod] = useState(null);
 
@@ -903,6 +908,13 @@ const CheckoutPage = () => {
     name: "",
     cardNumber: "",
     expiry: "",
+    cvv: "",
+  });
+
+  const [validationErrors, setValidationErrors] = useState({
+    nameOnCard: "",
+    cardNumber: "",
+    expiryDate: "",
     cvv: "",
   });
 
@@ -922,12 +934,12 @@ const CheckoutPage = () => {
     [subtotal, taxes, discount]
   );
 
-  const handleIncreaseQuantity = (index) => {
-    increaseQuantity(index);
+  const handleIncreaseQuantity = (item) => {
+    increaseQuantity(item);
   };
 
-  const handleDecreaseQuantity = (index) => {
-    decreaseQuantity(index);
+  const handleDecreaseQuantity = (item) => {
+    decreaseQuantity(item);
   };
 
   const handleApplyDiscount = () => {
@@ -1169,13 +1181,30 @@ const CheckoutPage = () => {
 
   // Customization Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentEditIndex, setCurrentEditIndex] = useState(null);
+  const [currentEditItem, setCurrentEditItem] = useState(null);
   const [editSelectedOptions, setEditSelectedOptions] = useState({});
 
-  const handleEditCustomization = (index) => {
-    setCurrentEditIndex(index);
-    const item = items[index];
-    setEditSelectedOptions(item.customizations || {});
+  // Updated handleEditCustomization Function
+  const handleEditCustomization = (item) => {
+    const menuItem = menuData.find(
+      (menuItem) => menuItem.id.toString() === item.id.toString()
+    );
+
+    // Initialize editSelectedOptions with current customizations or defaults
+    const initialCustomizations = {};
+
+    menuItem?.customizations.forEach((customization) => {
+      if (customization.removable) {
+        initialCustomizations[customization.name] =
+          item.customizations?.[customization.name] || [];
+      } else {
+        initialCustomizations[customization.name] =
+          item.customizations?.[customization.name] || customization.options[0];
+      }
+    });
+
+    setCurrentEditItem(item);
+    setEditSelectedOptions(initialCustomizations);
     setIsEditModalOpen(true);
   };
 
@@ -1212,7 +1241,7 @@ const CheckoutPage = () => {
 
     // Ensure that single-select customizations have a single value
     const menuItem = menuData.find(
-      (menuItem) => menuItem.id === items[currentEditIndex].id
+      (menuItem) => menuItem.id.toString() === currentEditItem.id.toString()
     );
     menuItem?.customizations.forEach((customization) => {
       if (!customization.removable) {
@@ -1246,7 +1275,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    updateCustomizations(currentEditIndex, updatedCustomizations);
+    updateCustomizations(currentEditItem, updatedCustomizations);
     toast.success("Customization updated successfully!", {
       position: "bottom-right",
       autoClose: 1500,
@@ -1258,13 +1287,13 @@ const CheckoutPage = () => {
     });
 
     setIsEditModalOpen(false);
-    setCurrentEditIndex(null);
+    setCurrentEditItem(null);
     setEditSelectedOptions({});
   };
 
   const handleCancelEditCustomization = () => {
     setIsEditModalOpen(false);
-    setCurrentEditIndex(null);
+    setCurrentEditItem(null);
     setEditSelectedOptions({});
     toast.info("Customization edit canceled.", {
       position: "bottom-right",
@@ -1278,16 +1307,16 @@ const CheckoutPage = () => {
   };
 
   // Handler for Remove Item Button
-  const handleRemoveItem = (index) => {
-    setRemoveItemIndex(index);
+  const handleRemoveItem = (item) => {
+    setRemoveItemData(item);
     setIsRemoveConfirmOpen(true);
   };
 
   // Confirm action to remove item
   const confirmRemoveItem = () => {
-    if (removeItemIndex !== null) {
-      const itemName = items[removeItemIndex].name;
-      removeItem(removeItemIndex);
+    if (removeItemData !== null) {
+      const itemName = removeItemData.name;
+      removeItem(removeItemData);
       toast.info(`Removed "${itemName}" from your cart.`, {
         position: "bottom-right",
         autoClose: 1500,
@@ -1297,14 +1326,14 @@ const CheckoutPage = () => {
         draggable: false,
         icon: "🗑️",
       });
-      setRemoveItemIndex(null);
+      setRemoveItemData(null);
       setIsRemoveConfirmOpen(false);
     }
   };
 
   // Cancel action to remove item
   const cancelRemoveItem = () => {
-    setRemoveItemIndex(null);
+    setRemoveItemData(null);
     setIsRemoveConfirmOpen(false);
     toast.info("Remove item action canceled.", {
       position: "bottom-right",
@@ -1316,14 +1345,6 @@ const CheckoutPage = () => {
       icon: "❌",
     });
   };
-
-  // Input Validation States
-  const [validationErrors, setValidationErrors] = useState({
-    nameOnCard: "",
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -1426,15 +1447,17 @@ const CheckoutPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item, index) => (
-                    <tr key={index}>
+                  {items.map((item) => (
+                    <tr
+                      key={`${item.id}-${JSON.stringify(item.customizations)}`}
+                    >
                       <td data-label="Item">{item.name}</td>
-                      {/* Updated Customization Section */}
+                      {/* Customization Section */}
                       <td data-label="Customization">
                         <CustomizationWrapper>
                           <EditButtonStyled
                             type="button"
-                            onClick={() => handleEditCustomization(index)}
+                            onClick={() => handleEditCustomization(item)}
                             aria-label={`Edit customization for ${item.name}`}
                             disabled={isProcessing}
                           >
@@ -1447,7 +1470,11 @@ const CheckoutPage = () => {
                                 ([category, options]) => {
                                   // Find the corresponding customization in menuData
                                   const customization = menuData
-                                    .find((menuItem) => menuItem.id === item.id)
+                                    .find(
+                                      (menuItem) =>
+                                        menuItem.id.toString() ===
+                                        item.id.toString()
+                                    )
                                     ?.customizations.find(
                                       (cust) => cust.name === category
                                     );
@@ -1484,12 +1511,11 @@ const CheckoutPage = () => {
                           )}
                         </CustomizationWrapper>
                       </td>
-
                       <td data-label="Quantity">
                         <QuantityControls>
                           <button
                             type="button"
-                            onClick={() => handleDecreaseQuantity(index)}
+                            onClick={() => handleDecreaseQuantity(item)}
                             aria-label="Decrease quantity"
                             disabled={isProcessing || item.quantity <= 1}
                           >
@@ -1498,7 +1524,7 @@ const CheckoutPage = () => {
                           <span>{item.quantity}</span>
                           <button
                             type="button"
-                            onClick={() => handleIncreaseQuantity(index)}
+                            onClick={() => handleIncreaseQuantity(item)}
                             aria-label="Increase quantity"
                             disabled={isProcessing}
                           >
@@ -1512,7 +1538,7 @@ const CheckoutPage = () => {
                       <td data-label="Action">
                         <RemoveButton
                           type="button"
-                          onClick={() => handleRemoveItem(index)}
+                          onClick={() => handleRemoveItem(item)}
                           aria-label={`Remove ${item.name}`}
                           disabled={isProcessing}
                         >
@@ -1726,6 +1752,7 @@ const CheckoutPage = () => {
         {/* Confirm Modal for Empty Cart */}
         {isConfirmModalOpen && (
           <ConfirmModal
+            isModalOpen={isConfirmModalOpen}
             message="Are you sure you want to empty your cart?"
             onConfirm={confirmEmptyCart}
             onCancel={cancelEmptyCart}
@@ -1733,9 +1760,10 @@ const CheckoutPage = () => {
         )}
 
         {/* Confirm Modal for Removing Item */}
-        {isRemoveConfirmOpen && removeItemIndex !== null && (
+        {isRemoveConfirmOpen && removeItemData !== null && (
           <ConfirmModal
-            message={`Are you sure you want to remove "${items[removeItemIndex].name}" from your cart?`}
+            isModalOpen={isRemoveConfirmOpen}
+            message={`Are you sure you want to remove "${removeItemData.name}" from your cart?`}
             onConfirm={confirmRemoveItem}
             onCancel={cancelRemoveItem}
           />
@@ -1756,7 +1784,7 @@ const CheckoutPage = () => {
         )}
 
         {/* Edit Customization Modal */}
-        {isEditModalOpen && currentEditIndex !== null && (
+        {isEditModalOpen && currentEditItem !== null && (
           <ModalOverlay
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -1768,15 +1796,19 @@ const CheckoutPage = () => {
           >
             <ModalContentStyled>
               <CloseButton
+                type="button"
                 onClick={handleCancelEditCustomization}
                 aria-label="Close Edit Customization Modal"
               >
                 &times;
               </CloseButton>
-              <h2>Edit Customization for {items[currentEditIndex].name}</h2>
+              <h2>Edit Customization for {currentEditItem.name}</h2>
               {/* Fetch the item's customization options from menuData */}
               {menuData
-                .find((menuItem) => menuItem.id === items[currentEditIndex].id)
+                .find(
+                  (menuItem) =>
+                    menuItem.id.toString() === currentEditItem.id.toString()
+                )
                 ?.customizations.map((customization, idx) => (
                   <div key={idx} className="customization-options">
                     <h4>{customization.name}</h4>
@@ -1818,10 +1850,14 @@ const CheckoutPage = () => {
                   </div>
                 ))}
               <div className="buttons">
-                <CancelButtonStyled onClick={handleCancelEditCustomization}>
+                <CancelButtonStyled
+                  type="button"
+                  onClick={handleCancelEditCustomization}
+                >
                   Cancel
                 </CancelButtonStyled>
                 <ConfirmButtonStyled
+                  type="button"
                   onClick={handleConfirmEditCustomization}
                   disabled={isProcessing}
                 >

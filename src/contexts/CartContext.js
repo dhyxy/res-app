@@ -12,12 +12,19 @@ const initialState = {
 const areCustomizationsEqual = (custom1, custom2) => {
   if (!custom1 && !custom2) return true;
   if (!custom1 || !custom2) return false;
-  const keys1 = Object.keys(custom1);
-  const keys2 = Object.keys(custom2);
+
+  const keys1 = Object.keys(custom1).sort();
+  const keys2 = Object.keys(custom2).sort();
+
   if (keys1.length !== keys2.length) return false;
-  for (let key of keys1) {
+
+  for (let i = 0; i < keys1.length; i++) {
+    const key = keys1[i];
+    if (key !== keys2[i]) return false;
+
     const val1 = custom1[key];
     const val2 = custom2[key];
+
     if (Array.isArray(val1) && Array.isArray(val2)) {
       if (val1.sort().join(",") !== val2.sort().join(",")) {
         return false;
@@ -26,6 +33,7 @@ const areCustomizationsEqual = (custom1, custom2) => {
       return false;
     }
   }
+
   return true;
 };
 
@@ -35,16 +43,18 @@ function cartReducer(state, action) {
       try {
         const { id, name, price, customizations } = action.payload;
         if (
-          typeof id !== "number" ||
+          (typeof id !== "number" && typeof id !== "string") ||
           typeof name !== "string" ||
           typeof price !== "number"
         ) {
           throw new Error("Invalid item data.");
         }
+        // Ensure id is a string for consistent comparison
+        const itemId = id.toString();
         // Check if item with same id and customizations exists
         const existingItemIndex = state.items.findIndex(
           (item) =>
-            item.id === id &&
+            item.id.toString() === itemId &&
             areCustomizationsEqual(item.customizations, customizations)
         );
         if (existingItemIndex !== -1) {
@@ -61,7 +71,7 @@ function cartReducer(state, action) {
             ...state,
             items: [
               ...state.items,
-              { id, name, price, quantity: 1, customizations },
+              { id: itemId, name, price, quantity: 1, customizations },
             ],
           };
         }
@@ -72,12 +82,17 @@ function cartReducer(state, action) {
 
     case "REMOVE_ITEM":
       try {
-        if (typeof action.payload !== "number") {
-          throw new Error("Invalid payload for REMOVE_ITEM.");
-        }
+        const { id, customizations } = action.payload;
+        const itemId = id.toString();
         return {
           ...state,
-          items: state.items.filter((item, index) => index !== action.payload),
+          items: state.items.filter(
+            (item) =>
+              !(
+                item.id.toString() === itemId &&
+                areCustomizationsEqual(item.customizations, customizations)
+              )
+          ),
         };
       } catch (error) {
         console.error("Error in REMOVE_ITEM action:", error);
@@ -86,13 +101,13 @@ function cartReducer(state, action) {
 
     case "INCREASE_QUANTITY":
       try {
-        if (typeof action.payload !== "number") {
-          throw new Error("Invalid payload for INCREASE_QUANTITY.");
-        }
+        const { id, customizations } = action.payload;
+        const itemId = id.toString();
         return {
           ...state,
-          items: state.items.map((item, index) =>
-            index === action.payload
+          items: state.items.map((item) =>
+            item.id.toString() === itemId &&
+            areCustomizationsEqual(item.customizations, customizations)
               ? { ...item, quantity: item.quantity + 1 }
               : item
           ),
@@ -104,14 +119,14 @@ function cartReducer(state, action) {
 
     case "DECREASE_QUANTITY":
       try {
-        if (typeof action.payload !== "number") {
-          throw new Error("Invalid payload for DECREASE_QUANTITY.");
-        }
+        const { id, customizations } = action.payload;
+        const itemId = id.toString();
         return {
           ...state,
           items: state.items
-            .map((item, index) =>
-              index === action.payload
+            .map((item) =>
+              item.id.toString() === itemId &&
+              areCustomizationsEqual(item.customizations, customizations)
                 ? { ...item, quantity: item.quantity - 1 }
                 : item
             )
@@ -123,22 +138,27 @@ function cartReducer(state, action) {
       }
 
     case "CLEAR_CART":
-      return initialState;
+      return {
+        ...state,
+        items: [],
+      };
 
     case "UPDATE_CUSTOMIZATIONS":
       try {
-        const { index, newCustomizations } = action.payload;
-        if (
-          typeof index !== "number" ||
-          typeof newCustomizations !== "object"
-        ) {
+        const { id, oldCustomizations, newCustomizations } = action.payload;
+        if (typeof id !== "number" && typeof id !== "string") {
           throw new Error("Invalid payload for UPDATE_CUSTOMIZATIONS.");
         }
-        const updatedCartItems = [...state.items];
-        if (!updatedCartItems[index]) {
-          throw new Error("Item index out of range.");
-        }
-        updatedCartItems[index].customizations = newCustomizations;
+        const itemId = id.toString();
+        const updatedCartItems = state.items.map((item) => {
+          if (
+            item.id.toString() === itemId &&
+            areCustomizationsEqual(item.customizations, oldCustomizations)
+          ) {
+            return { ...item, customizations: newCustomizations };
+          }
+          return item;
+        });
         return {
           ...state,
           items: updatedCartItems,
@@ -160,26 +180,30 @@ export const CartProvider = ({ children }) => {
     dispatch({ type: "ADD_ITEM", payload: item });
   };
 
-  const removeItem = (index) => {
-    dispatch({ type: "REMOVE_ITEM", payload: index });
+  const removeItem = (item) => {
+    dispatch({ type: "REMOVE_ITEM", payload: item });
   };
 
-  const increaseQuantity = (index) => {
-    dispatch({ type: "INCREASE_QUANTITY", payload: index });
+  const increaseQuantity = (item) => {
+    dispatch({ type: "INCREASE_QUANTITY", payload: item });
   };
 
-  const decreaseQuantity = (index) => {
-    dispatch({ type: "DECREASE_QUANTITY", payload: index });
+  const decreaseQuantity = (item) => {
+    dispatch({ type: "DECREASE_QUANTITY", payload: item });
   };
 
   const clearCart = () => {
     dispatch({ type: "CLEAR_CART" });
   };
 
-  const updateCustomizations = (index, newCustomizations) => {
+  const updateCustomizations = (item, newCustomizations) => {
     dispatch({
       type: "UPDATE_CUSTOMIZATIONS",
-      payload: { index, newCustomizations },
+      payload: {
+        id: item.id,
+        oldCustomizations: item.customizations,
+        newCustomizations,
+      },
     });
   };
 

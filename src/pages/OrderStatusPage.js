@@ -6,12 +6,13 @@ import { OrderContext } from "../contexts/OrderContext";
 import styled from "styled-components";
 import BackButton from "../components/BackButton";
 import { toast } from "react-toastify";
-import ConfirmModal from "../components/ConfirmModal"; // Import the ConfirmModal component
+import ConfirmModal from "../components/ConfirmModal";
+import { FaClock } from "react-icons/fa";
 
 // Styled Components
 
 const Container = styled.div`
-  padding: 40px 20px; /* Match About Us page padding */
+  padding: 40px 20px;
   text-align: center;
 
   h1 {
@@ -51,7 +52,6 @@ const InputField = styled.input`
   }
 `;
 
-// Styled Component for Centering Buttons
 const CenteredButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -105,8 +105,17 @@ const ProgressBar = styled.div`
 const StatusText = styled.p`
   font-size: 1.2rem;
   font-weight: bold;
-  margin-top: 10px; /* Add some spacing above the status text */
+  margin-top: 10px;
   color: ${({ isError }) => (isError ? "#ff4d4d" : "#333")};
+`;
+
+const EstimatedTimeText = styled.p`
+  font-size: 1rem;
+  margin-top: 5px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 `;
 
 const OrderDetails = styled.div`
@@ -133,8 +142,8 @@ const OrderDetails = styled.div`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: center; /* Center the buttons horizontally */
-  gap: 20px; /* Increased gap between buttons */
+  justify-content: center;
+  gap: 20px;
   margin-top: 20px;
 
   @media (max-width: 500px) {
@@ -169,8 +178,6 @@ const ErrorMessage = styled.p`
   margin-top: 5px;
 `;
 
-// Reusable Confirmation Modal Component is replaced by ConfirmModal import
-
 const OrderStatusPage = () => {
   const { getOrderById } = useContext(OrderContext);
   const location = useLocation();
@@ -183,8 +190,10 @@ const OrderStatusPage = () => {
   const [autoTrack, setAutoTrack] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [inputError, setInputError] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal
-  const [modalAction, setModalAction] = useState(null); // 'trackAnother', 'requestServices', or 'goHome'
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalAction, setModalAction] = useState(null);
+  const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState(null);
+  const [totalEstimatedTime, setTotalEstimatedTime] = useState(null); // New state
 
   useEffect(() => {
     if (location.state?.orderId && !autoTrack) {
@@ -192,7 +201,6 @@ const OrderStatusPage = () => {
       handleTrackOrder(location.state.orderId);
       setAutoTrack(true);
     } else if (!location.state?.orderId && autoTrack) {
-      // If no orderId is passed and autoTrack was previously true, reset the state
       if (intervalId) {
         clearInterval(intervalId);
         setIntervalId(null);
@@ -209,7 +217,6 @@ const OrderStatusPage = () => {
   }, [location.state, autoTrack]);
 
   const validateOrderId = (id) => {
-    // Example validation: alphanumeric and length between 5 and 15
     const regex = /^[a-zA-Z0-9]{5,15}$/;
     return regex.test(id);
   };
@@ -245,17 +252,16 @@ const OrderStatusPage = () => {
     }
 
     setInputError("");
-    // Disable the Track button by disabling during tracking
-    if (intervalId) clearInterval(intervalId); // Clear any existing intervals
+    if (intervalId) clearInterval(intervalId);
 
     try {
       const fetchedOrder = getOrderById(trimmedId);
       if (fetchedOrder) {
         setOrder(fetchedOrder);
-        setIsVerified(true); // Mark as verified
+        setIsVerified(true);
         setProgress(0);
         setStatusText("Order Received");
-        simulateProgress();
+        calculateTotalEstimatedTime(fetchedOrder.items);
         toast.success("Order found. Tracking started!", {
           position: "bottom-right",
           autoClose: 1500,
@@ -266,7 +272,7 @@ const OrderStatusPage = () => {
         });
       } else {
         setOrder(null);
-        setIsVerified(false); // Remain unverified
+        setIsVerified(false);
         setStatusText("Order not found. Please check your Order ID.");
         toast.error("Order not found. Please check your Order ID.", {
           position: "bottom-right",
@@ -293,25 +299,66 @@ const OrderStatusPage = () => {
     }
   };
 
-  const simulateProgress = () => {
+  const calculateTotalEstimatedTime = (items) => {
+    let totalTime = 0;
+    items.forEach((item) => {
+      // Remove the redundant line below
+      // totalTime += item.estimatedTime * item.quantity;
+
+      if (typeof item.estimatedTime === "number") {
+        totalTime += item.estimatedTime * item.quantity;
+      } else {
+        totalTime += 20 * item.quantity; // Default estimated time per item
+      }
+    });
+    setEstimatedTimeRemaining(totalTime);
+    setTotalEstimatedTime(totalTime); // Save the total estimated time
+    simulateProgress(totalTime); // Start the progress simulation with total time
+  };
+
+  const simulateProgress = (totalTime) => {
     const statuses = [
       { percent: 0, text: "Order Received" },
       { percent: 25, text: "Preparing your order" },
       { percent: 50, text: "Cooking in progress" },
       { percent: 75, text: "Order is almost ready" },
-      { percent: 100, text: "Your order will be served to you shortly!" },
+      { percent: 100, text: "Your order will be served shortly!" },
     ];
-    let index = 0;
+
+    const progressIntervals = [0, 25, 50, 75, 100]; // Progress percentages
+    let currentIndex = 0;
+
+    // Clear any existing interval to prevent multiple intervals running simultaneously
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+
     const interval = setInterval(() => {
-      if (index < statuses.length) {
-        setProgress(statuses[index].percent);
-        setStatusText(statuses[index].text);
-        index++;
-      } else {
+      if (currentIndex >= progressIntervals.length) {
         clearInterval(interval);
-        setIntervalId(null); // Reset intervalId when progress is complete
+        setIntervalId(null);
+        setEstimatedTimeRemaining(0);
+        return;
       }
-    }, 2000);
+
+      const currentProgress = progressIntervals[currentIndex];
+      setProgress(currentProgress);
+
+      // Update status text based on progress
+      const currentStatus = statuses.find(
+        (status) => status.percent === currentProgress
+      ).text;
+      setStatusText(currentStatus);
+
+      // Update estimated time remaining
+      const newRemaining = Math.ceil(
+        totalTime * ((100 - currentProgress) / 100)
+      );
+      setEstimatedTimeRemaining(newRemaining);
+
+      currentIndex++;
+    }, 1000); // Update every second
+
     setIntervalId(interval);
   };
 
@@ -322,27 +369,23 @@ const OrderStatusPage = () => {
   }, [intervalId]);
 
   const handleTrackAnotherOrder = () => {
-    // Open confirmation modal for "Track Another Order"
     setModalAction("trackAnother");
     setIsModalOpen(true);
   };
 
   const handleRequestServices = () => {
-    // Open confirmation modal for "Request Services"
     setModalAction("requestServices");
     setIsModalOpen(true);
   };
 
   const handleGoHome = () => {
-    // Open confirmation modal for going home
     setModalAction("goHome");
     setIsModalOpen(true);
   };
 
   const confirmAction = () => {
     if (modalAction === "trackAnother") {
-      // Show toast before navigation
-      toast.info("Tracking of another order has been initiated.", {
+      toast.info("Tracking another order.", {
         position: "bottom-right",
         autoClose: 1500,
         hideProgressBar: true,
@@ -350,18 +393,14 @@ const OrderStatusPage = () => {
         draggable: false,
         icon: "ℹ️",
       });
-      // Navigate to /order-status without passing the previous orderId
       navigate("/order-status");
     } else if (modalAction === "requestServices") {
       if (isVerified && order) {
-        // Navigate to /request-services with the current orderId
         navigate("/request-services", { state: { orderId: order.orderId } });
       } else {
-        // Navigate to /request-services without passing any orderId
         navigate("/request-services");
       }
     } else if (modalAction === "goHome") {
-      // Navigate to home page
       navigate("/");
     }
     setIsModalOpen(false);
@@ -369,7 +408,6 @@ const OrderStatusPage = () => {
   };
 
   const cancelAction = () => {
-    // Close confirmation modal without performing any action
     setIsModalOpen(false);
     setModalAction(null);
   };
@@ -398,7 +436,7 @@ const OrderStatusPage = () => {
             <TrackButton
               onClick={() => handleTrackOrder()}
               aria-label="Track Order"
-              disabled={!!intervalId} // Disable if tracking is in progress
+              disabled={!!intervalId}
             >
               {intervalId ? "Tracking..." : "Track Order"}
             </TrackButton>
@@ -413,6 +451,11 @@ const OrderStatusPage = () => {
           <ProgressBarContainer>
             <ProgressBar progress={progress} />
           </ProgressBarContainer>
+          {estimatedTimeRemaining !== null && (
+            <EstimatedTimeText>
+              <FaClock /> Estimated Time Remaining: {estimatedTimeRemaining} min
+            </EstimatedTimeText>
+          )}
           <OrderDetails>
             <h3>Order Details:</h3>
             <ul>
@@ -431,8 +474,7 @@ const OrderStatusPage = () => {
             <ActionButton onClick={handleRequestServices}>
               Request Services
             </ActionButton>
-            <ActionButton onClick={handleGoHome}>Home</ActionButton>{" "}
-            {/* Added Home Button */}
+            <ActionButton onClick={handleGoHome}>Home</ActionButton>
           </ButtonContainer>
         </StatusContainer>
       )}
@@ -441,12 +483,11 @@ const OrderStatusPage = () => {
           <ActionButton onClick={handleTrackAnotherOrder}>
             Track Another Order
           </ActionButton>
-          <ActionButton onClick={handleGoHome}>Home</ActionButton>{" "}
-          {/* Added Home Button */}
+          <ActionButton onClick={handleGoHome}>Home</ActionButton>
         </ButtonContainer>
       )}
 
-      {/* Confirmation Modal using ConfirmModal Component */}
+      {/* Confirmation Modal */}
       <ConfirmModal
         isModalOpen={isModalOpen}
         title={

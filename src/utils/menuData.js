@@ -1,5 +1,3 @@
-// src/utils/menuData.js
-
 // Import Images
 import AvocadoToast from "../assets/avocadotoast.webp";
 import Beer from "../assets/beer.webp";
@@ -43,6 +41,7 @@ const menuData = [
     numReviews: 150,
     image: AvocadoToast,
     tags: ["Breakfast", "Vegan"],
+    estimatedTime: 10,
     description:
       "Deliciously creamy avocado spread generously on perfectly toasted sourdough bread, garnished with fresh tomatoes, red pepper flakes, and chives for an extra burst of flavor.",
     customizations: [
@@ -63,6 +62,7 @@ const menuData = [
     numReviews: 150,
     image: pizza,
     tags: ["Lunch", "Dinner"],
+    estimatedTime: 20,
     description:
       "Classic pepperoni pizza with a golden, crispy crust, topped with melted mozzarella cheese, pepperoni slices, and a vibrant tomato sauce. Perfect for a satisfying lunch or dinner.",
     customizations: [
@@ -104,6 +104,7 @@ const menuData = [
     numReviews: 200,
     image: BreakfastBurrito,
     tags: ["Breakfast", "Spicy"],
+    estimatedTime: 15,
     description:
       "A hearty flour tortilla filled with fluffy scrambled eggs, melted cheese, savory salsa, and your choice of fillings, perfect for a satisfying start to your day.",
     customizations: [
@@ -119,7 +120,6 @@ const menuData = [
       },
     ],
   },
-  // ... Continue assigning unique IDs to all items
   {
     id: 4,
     name: "Caesar Salad",
@@ -130,6 +130,7 @@ const menuData = [
     numReviews: 120,
     image: CaesarSalad,
     tags: ["Lunch", "Vegetarian"],
+    estimatedTime: 10,
     description:
       "Crisp romaine lettuce tossed in our signature Caesar dressing, topped with crunchy croutons and freshly grated Parmesan cheese for a classic and refreshing meal.",
     customizations: [
@@ -155,6 +156,7 @@ const menuData = [
     numReviews: 180,
     image: GarlicBread,
     tags: ["Appetizer", "Vegetarian"],
+    estimatedTime: 8,
     description:
       "Warm, toasted bread generously slathered with garlic butter and herbs, creating a savory side that pairs perfectly with any meal.",
     customizations: [
@@ -175,6 +177,7 @@ const menuData = [
     numReviews: 160,
     image: Omelette,
     tags: ["Breakfast"],
+    estimatedTime: 12,
     description:
       "A fluffy three-egg omelette filled with your choice of fresh ingredients, including cheese, mushrooms, ham, spinach, and onions, cooked to perfection.",
     customizations: [
@@ -195,6 +198,7 @@ const menuData = [
     numReviews: 220,
     image: Pancakes,
     tags: ["Breakfast", "Sweet"],
+    estimatedTime: 10,
     description:
       "Fluffy golden pancakes stacked high and served with rich maple syrup and creamy butter, offering a delightful sweet start to your morning.",
     customizations: [
@@ -225,6 +229,7 @@ const menuData = [
     numReviews: 250,
     image: Salmon,
     tags: ["Dinner", "Gluten-Free"],
+    estimatedTime: 25,
     description:
       "Premium grilled salmon fillet drizzled with a zesty lemon butter sauce, served alongside your choice of steamed vegetables, rice, or mashed potatoes.",
     customizations: [
@@ -250,6 +255,7 @@ const menuData = [
     numReviews: 190,
     image: Spaghetti,
     tags: ["Lunch", "Spicy"],
+    estimatedTime: 20,
     description:
       "Classic spaghetti noodles smothered in our homemade marinara sauce, with an option to add meatballs or grilled chicken for a protein-packed meal.",
     customizations: [
@@ -275,6 +281,7 @@ const menuData = [
     numReviews: 300,
     image: SteakFrites,
     tags: ["Dinner", "Gluten-Free"],
+    estimatedTime: 30,
     description:
       "Juicy grilled steak cooked to your preferred doneness, served with a side of crispy golden french fries and your choice of seasoning.",
     customizations: [
@@ -300,6 +307,7 @@ const menuData = [
     numReviews: 130,
     image: StuffedMushrooms,
     tags: ["Appetizer", "Vegetarian"],
+    estimatedTime: 15,
     description:
       "Plump mushrooms stuffed with a savory mixture of cheeses and herbs, baked to golden perfection for a delightful appetizer.",
     customizations: [
@@ -320,6 +328,7 @@ const menuData = [
     numReviews: 210,
     image: Wings,
     tags: ["Appetizer", "Spicy"],
+    estimatedTime: 15,
     description:
       "Tender and juicy chicken wings tossed in your choice of flavorful sauces, served with creamy ranch dressing on the side.",
     customizations: [
@@ -352,6 +361,7 @@ const menuData = [
     numReviews: 140,
     image: Cheesecake,
     tags: ["Sweet"],
+    estimatedTime: 5,
     description:
       "Rich and creamy cheesecake nestled on a buttery graham cracker crust, topped with your choice of fresh berries, chocolate sauce, or caramel.",
     customizations: [
@@ -382,6 +392,7 @@ const menuData = [
     numReviews: 200,
     image: kunafa,
     tags: ["Sweet"],
+    estimatedTime: 15,
     description:
       "A traditional Middle Eastern dessert made with thin, crispy shredded phyllo dough, filled with sweet cheese or cream, and soaked in a fragrant sugar syrup. Topped with crushed pistachios for a perfect finishing touch.",
     customizations: [
@@ -412,6 +423,7 @@ const menuData = [
     numReviews: 170,
     image: ChocolateCake,
     tags: ["Sweet"],
+    estimatedTime: 5,
     description:
       "Decadent chocolate cake layered with rich chocolate frosting, perfect for chocolate lovers seeking an indulgent treat.",
     customizations: [
@@ -442,6 +454,7 @@ const menuData = [
     numReviews: 110,
     image: Sundae,
     tags: ["Sweet"],
+    estimatedTime: 5,
     description:
       "Classic vanilla ice cream topped with your choice of decadent sauces, crunchy marshmallows, and Oreo crumbles for a delightful dessert experience.",
     customizations: [
@@ -479,6 +492,7 @@ const menuData = [
     numReviews: 190,
     image: Beer,
     tags: ["Alcoholic"],
+    estimatedTime: 2,
     description:
       "A diverse selection of local and imported beers, ranging from crisp lagers to robust stouts, perfect for any beer enthusiast.",
     customizations: [
@@ -509,6 +523,7 @@ const menuData = [
     numReviews: 90,
     image: IcedTea,
     tags: ["Non-Alcoholic", "Sweet"],
+    estimatedTime: 2,
     description:
       "Refreshing iced tea brewed daily, available in various sweetness levels and enhanced with a slice of lemon for added zest.",
     customizations: [
@@ -539,6 +554,7 @@ const menuData = [
     numReviews: 100,
     image: Lemonade,
     tags: ["Non-Alcoholic", "Sweet"],
+    estimatedTime: 2,
     description:
       "Homemade lemonade infused with a hint of fresh mint, customizable in sweetness and size to perfectly quench your thirst.",
     customizations: [
@@ -569,6 +585,7 @@ const menuData = [
     numReviews: 220,
     image: Margarita,
     tags: ["Alcoholic"],
+    estimatedTime: 5,
     description:
       "Classic margarita crafted with fresh lime juice and premium tequila, available in various flavors and sizes to suit your preference.",
     customizations: [
@@ -599,6 +616,7 @@ const menuData = [
     numReviews: 180,
     image: Mojito,
     tags: ["Alcoholic"],
+    estimatedTime: 5,
     description:
       "A refreshing blend of premium rum, fresh mint leaves, and zesty lime, customizable in flavor and sweetness to your liking.",
     customizations: [
@@ -629,6 +647,7 @@ const menuData = [
     numReviews: 80,
     image: Pepsi,
     tags: ["Non-Alcoholic"],
+    estimatedTime: 1,
     description:
       "Chilled can of Pepsi, a classic carbonated soft drink that pairs well with any meal or snack.",
     customizations: [
@@ -654,6 +673,7 @@ const menuData = [
     numReviews: 300,
     image: RedWine,
     tags: ["Alcoholic"],
+    estimatedTime: 2,
     description:
       "A curated selection of fine red wines from renowned vineyards around the world, available by the bottle or glass with options for vintage and size.",
     customizations: [
@@ -684,6 +704,7 @@ const menuData = [
     numReviews: 95,
     image: RootBeer,
     tags: ["Non-Alcoholic", "Sweet"],
+    estimatedTime: 1,
     description:
       "Classic root beer served chilled, offering a sweet and creamy flavor that's perfect for any occasion.",
     customizations: [
@@ -714,6 +735,7 @@ const menuData = [
     numReviews: 160,
     image: Smoothie,
     tags: ["Non-Alcoholic", "Sweet", "Vegetarian"],
+    estimatedTime: 5,
     description:
       "Fruit smoothie made with fresh ingredients, available in a variety of flavors and customizable with optional protein additions for an extra boost.",
     customizations: [
@@ -744,6 +766,7 @@ const menuData = [
     numReviews: 240,
     image: WhiteWine,
     tags: ["Alcoholic"],
+    estimatedTime: 2,
     description:
       "A premium selection of white wines from various regions, available by the bottle or glass with options for vintage and size to suit your preference.",
     customizations: [
@@ -768,12 +791,13 @@ const menuData = [
     id: 27,
     name: "Coca Cola",
     category: "Drinks",
-    price: 4.99,
+    price: 2.99,
     popularity: 92,
     rating: 4.8,
     numReviews: 240,
     image: Cocacola,
     tags: ["Non-Alcoholic"],
+    estimatedTime: 1,
     description:
       "Chilled can or glass of Coca-Cola, a classic carbonated soft drink that pairs well with any meal or snack.",
     customizations: [
@@ -784,7 +808,7 @@ const menuData = [
       },
       {
         name: "Size",
-        options: ["Standard (750ml)", "Half Bottle (375ml)"],
+        options: ["Small (12oz)", "Medium (16oz)", "Large (24oz)"],
         removable: false,
       },
     ],
@@ -793,12 +817,13 @@ const menuData = [
     id: 28,
     name: "7 Up",
     category: "Drinks",
-    price: 4.99,
+    price: 2.99,
     popularity: 92,
     rating: 4.8,
     numReviews: 240,
     image: sevenup,
     tags: ["Non-Alcoholic"],
+    estimatedTime: 1,
     description:
       "Chilled can or glass of 7Up, a classic carbonated soft drink that pairs well with any meal or snack.",
     customizations: [
@@ -809,14 +834,13 @@ const menuData = [
       },
       {
         name: "Size",
-        options: ["Standard (750ml)", "Half Bottle (375ml)"],
+        options: ["Small (12oz)", "Medium (16oz)", "Large (24oz)"],
         removable: false,
       },
     ],
   },
 ];
 
-// Basic Validation on Export
 const validateMenuData = (data) => {
   if (!Array.isArray(data)) {
     console.error("menuData should be an array.");
@@ -831,7 +855,8 @@ const validateMenuData = (data) => {
       typeof item.price === "number" &&
       Array.isArray(item.tags) &&
       typeof item.description === "string" &&
-      Array.isArray(item.customizations);
+      Array.isArray(item.customizations) &&
+      typeof item.estimatedTime === "number";
 
     if (!hasRequiredFields) {
       console.warn(`Menu item with id ${item.id} is missing required fields.`);

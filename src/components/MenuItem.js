@@ -20,6 +20,7 @@ import {
   FaPrayingHands,
   FaSeedling,
   FaNutritionix,
+  FaClock,
 } from "react-icons/fa";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
@@ -106,6 +107,15 @@ const MenuItemCard = styled.div`
         font-size: 0.7rem;
         color: #666;
       }
+    }
+
+    .estimated-time {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 8px;
     }
 
     .description {
@@ -396,6 +406,7 @@ const MenuItem = ({
   rating,
   numReviews,
   reviews,
+  estimatedTime,
 }) => {
   const [imgSrc, setImgSrc] = useState(image || fallbackImage);
   const { addItem } = useContext(CartContext);
@@ -449,6 +460,7 @@ const MenuItem = ({
         name,
         price,
         customizations: customizationsSelected,
+        estimatedTime,
       });
 
       toast.success(`${name} has been added to your cart!`, {
@@ -537,7 +549,7 @@ const MenuItem = ({
     return truncated;
   };
 
-  const wordLimit = 5;
+  const wordLimit = 6;
   const isLongDescription =
     description && description.split(" ").length > wordLimit;
   const displayedDescription = isExpanded
@@ -583,6 +595,11 @@ const MenuItem = ({
               {numReviews ? `(${numReviews} reviews)` : "(No reviews)"}
             </div>
           </div>
+          {typeof estimatedTime === "number" && (
+            <div className="estimated-time">
+              <FaClock /> Estimated Time: {estimatedTime} min
+            </div>
+          )}
           <p className="description">
             {displayedDescription}
             {isLongDescription && (

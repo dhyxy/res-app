@@ -55,6 +55,10 @@ const CloseButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.accentColor || "#4a90e2"};
   }
+
+  &:focus {
+    outline: 2px solid #4a90e2;
+  }
 `;
 
 const Message = styled.p`
@@ -84,6 +88,10 @@ const ConfirmButton = styled.button`
   &:hover {
     background-color: #357ab8;
   }
+
+  &:focus {
+    outline: 2px solid #4a90e2;
+  }
 `;
 
 const CancelButton = styled.button`
@@ -98,6 +106,10 @@ const CancelButton = styled.button`
 
   &:hover {
     background-color: #cc0000;
+  }
+
+  &:focus {
+    outline: 2px solid #ff4d4d;
   }
 `;
 
@@ -128,15 +140,15 @@ const ConfirmModal = ({ isModalOpen, title, message, onConfirm, onCancel }) => {
       aria-modal="true"
     >
       <ModalContainer>
-        <CloseButton onClick={onCancel} aria-label="Close Modal">
+        <CloseButton type="button" onClick={onCancel} aria-label="Close Modal">
           &times;
         </CloseButton>
         <Message>{message}</Message>
         <ButtonContainer>
-          <ConfirmButton onClick={onConfirm} aria-label="Confirm">
+          <ConfirmButton type="button" onClick={onConfirm} aria-label="Confirm">
             Yes
           </ConfirmButton>
-          <CancelButton onClick={onCancel} aria-label="Cancel">
+          <CancelButton type="button" onClick={onCancel} aria-label="Cancel">
             No
           </CancelButton>
         </ButtonContainer>

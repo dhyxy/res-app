@@ -49,6 +49,10 @@ const CloseButton = styled.button`
     color: #4a90e2;
   }
 
+  &:focus {
+    outline: 2px solid #4a90e2;
+  }
+
   @media (max-width: 480px) {
     top: 8px;
     right: 8px;
@@ -144,7 +148,7 @@ const SuccessModal = ({ onClose, message, orderId }) => {
   return (
     <Overlay role="dialog" aria-modal="true" onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-        <CloseButton onClick={onClose} aria-label="Close Modal">
+        <CloseButton type="button" onClick={onClose} aria-label="Close Modal">
           &times;
         </CloseButton>
         <Message>{message}</Message>
@@ -155,11 +159,25 @@ const SuccessModal = ({ onClose, message, orderId }) => {
           screenshot for your convenience.
         </NoteText>
         <ButtonContainer>
-          <ActionButton onClick={handleContinueShopping}>
+          <ActionButton
+            type="button"
+            onClick={handleContinueShopping}
+            aria-label="Continue Shopping"
+          >
             Continue Shopping
           </ActionButton>
-          <ActionButton onClick={handleTrackOrder}>Track Order</ActionButton>
-          <ActionButton onClick={handleRequestServices}>
+          <ActionButton
+            type="button"
+            onClick={handleTrackOrder}
+            aria-label="Track Order"
+          >
+            Track Order
+          </ActionButton>
+          <ActionButton
+            type="button"
+            onClick={handleRequestServices}
+            aria-label="Request Services"
+          >
             Request Services
           </ActionButton>
         </ButtonContainer>
