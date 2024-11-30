@@ -1,7 +1,14 @@
 // src/pages/MenuPage.js
 
-import React, { useState, useMemo, useContext } from "react";
+import React, {
+  useState,
+  useMemo,
+  useContext,
+  useCallback,
+  useEffect,
+} from "react";
 import styled from "styled-components";
+import PropTypes from "prop-types";
 import menuData from "../utils/menuData";
 import MenuItem from "../components/MenuItem";
 import { CartContext } from "../contexts/CartContext";
@@ -21,8 +28,7 @@ import {
   FaChevronUp,
 } from "react-icons/fa"; // Added FaChevronDown and FaChevronUp for dropdown
 
-// Styled Components
-
+// Styled Components (unchanged)
 const PageContainer = styled.div`
   padding: 20px;
   max-width: 1200px; /* Set a maximum width */
@@ -277,7 +283,7 @@ const MainContent = styled.main`
 
   .menu-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 4 columns for desktop screens */
+    grid-template-columns: repeat(3, 1fr); /* 3 columns for desktop screens */
     gap: 20px;
 
     @media (max-width: 1024px) {
@@ -436,44 +442,83 @@ const MenuPage = () => {
 
   const { addItem } = useContext(CartContext);
 
-  const filterCategories = useMemo(() => {
-    const categoriesMap = {};
+  // Valid Sort Options
+  const validSortOptions = ["popularity", "priceLowHigh", "priceHighLow"];
 
+  // Valid Categories
+  const validCategories = useMemo(
+    () => categories.map((cat) => cat.name),
+    [categories]
+  );
+
+  // Valid Tags
+  const allAvailableTags = useMemo(() => {
+    const tagsSet = new Set();
     menuData.forEach((item) => {
-      item.tags.forEach((tag) => {
-        if (["Alcoholic", "Non-Alcoholic"].includes(tag)) {
-          categoriesMap["Beverage Type"] =
-            categoriesMap["Beverage Type"] || new Set();
-          categoriesMap["Beverage Type"].add(tag);
-        } else if (["Vegan", "Vegetarian", "Gluten-Free"].includes(tag)) {
-          categoriesMap["Dietary"] = categoriesMap["Dietary"] || new Set();
-          categoriesMap["Dietary"].add(tag);
-        } else if (
-          ["Breakfast", "Lunch", "Dinner", "Appetizer"].includes(tag)
-        ) {
-          categoriesMap["Meal Type"] = categoriesMap["Meal Type"] || new Set();
-          categoriesMap["Meal Type"].add(tag);
-        } else if (["Spicy", "Sweet"].includes(tag)) {
-          categoriesMap["Flavor Profile"] =
-            categoriesMap["Flavor Profile"] || new Set();
-          categoriesMap["Flavor Profile"].add(tag);
-        } else {
-          categoriesMap["Miscellaneous"] =
-            categoriesMap["Miscellaneous"] || new Set();
-          categoriesMap["Miscellaneous"].add(tag);
-        }
-      });
+      if (Array.isArray(item.tags)) {
+        item.tags.forEach((tag) => tagsSet.add(tag));
+      }
     });
-
-    const sortedCategories = {};
-    Object.keys(categoriesMap).forEach((category) => {
-      sortedCategories[category] = Array.from(categoriesMap[category]).sort();
-    });
-
-    return sortedCategories;
+    return Array.from(tagsSet);
   }, []);
 
+  const filterCategories = useMemo(() => {
+    try {
+      const categoriesMap = {};
+
+      menuData.forEach((item) => {
+        if (!item.tags || !Array.isArray(item.tags)) return; // Skip if tags are invalid
+        item.tags.forEach((tag) => {
+          if (["Alcoholic", "Non-Alcoholic"].includes(tag)) {
+            categoriesMap["Beverage Type"] =
+              categoriesMap["Beverage Type"] || new Set();
+            categoriesMap["Beverage Type"].add(tag);
+          } else if (["Vegan", "Vegetarian", "Gluten-Free"].includes(tag)) {
+            categoriesMap["Dietary"] = categoriesMap["Dietary"] || new Set();
+            categoriesMap["Dietary"].add(tag);
+          } else if (
+            ["Breakfast", "Lunch", "Dinner", "Appetizer"].includes(tag)
+          ) {
+            categoriesMap["Meal Type"] =
+              categoriesMap["Meal Type"] || new Set();
+            categoriesMap["Meal Type"].add(tag);
+          } else if (["Spicy", "Sweet"].includes(tag)) {
+            categoriesMap["Flavor Profile"] =
+              categoriesMap["Flavor Profile"] || new Set();
+            categoriesMap["Flavor Profile"].add(tag);
+          } else {
+            categoriesMap["Miscellaneous"] =
+              categoriesMap["Miscellaneous"] || new Set();
+            categoriesMap["Miscellaneous"].add(tag);
+          }
+        });
+      });
+
+      const sortedCategories = {};
+      Object.keys(categoriesMap).forEach((category) => {
+        sortedCategories[category] = Array.from(categoriesMap[category]).sort();
+      });
+
+      return sortedCategories;
+    } catch (error) {
+      console.error("Error processing filter categories:", error);
+      toast.error("Failed to load filter categories.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return {};
+    }
+  }, [menuData]); // Added menuData as dependency
+
   const toggleTag = (tag) => {
+    if (!allAvailableTags.includes(tag)) {
+      toast.error(`Invalid tag selection: ${tag}`, {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setSelectedTags((prevTags) =>
       prevTags.includes(tag)
         ? prevTags.filter((t) => t !== tag)
@@ -482,63 +527,155 @@ const MenuPage = () => {
   };
 
   const handleCategorySelect = (category) => {
+    if (!validCategories.includes(category)) {
+      toast.error(`Invalid category selection: ${category}`, {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return;
+    }
     setSelectedCategory(category);
   };
 
   const handleSortChange = (e) => {
-    setSortOption(e.target.value);
+    const value = e.target.value;
+    if (!validSortOptions.includes(value)) {
+      toast.error(`Invalid sort option selected: ${value}`, {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      setSortOption("popularity"); // Reset to default
+      return;
+    }
+    setSortOption(value);
   };
 
-  const clearFilters = () => {
-    setSelectedTags([]);
-    setSelectedCategory("All Items");
-    setSearchQuery("");
-    toast.info("All filters have been cleared.", {
-      position: "bottom-right",
-      autoClose: 1500,
-      closeButton: true,
-      hideProgressBar: true,
-      pauseOnHover: true,
-      draggable: false,
-      icon: <FaTimes />,
-    });
-    setIsDropdownOpen(false); // Close dropdown after clearing
-  };
+  const clearFilters = useCallback(() => {
+    try {
+      setSelectedTags([]);
+      setSelectedCategory("All Items");
+      setSearchQuery("");
+      toast.info("All filters have been cleared.", {
+        position: "bottom-right",
+        autoClose: 1500,
+        closeButton: true,
+        hideProgressBar: true,
+        pauseOnHover: true,
+        draggable: false,
+        icon: <FaTimes />,
+      });
+      setIsDropdownOpen(false); // Close dropdown after clearing
+    } catch (error) {
+      console.error("Error clearing filters:", error);
+      toast.error("Failed to clear filters.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+    }
+  }, []);
 
   const filteredAndSortedMenu = useMemo(() => {
-    let filtered = [...menuData];
+    try {
+      let filtered = [...menuData];
 
-    if (selectedCategory !== "All Items") {
-      filtered = filtered.filter(
-        (item) => item.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
+      if (selectedCategory !== "All Items") {
+        filtered = filtered.filter(
+          (item) =>
+            item.category &&
+            item.category.toLowerCase() === selectedCategory.toLowerCase()
+        );
+      }
+
+      if (selectedTags.length > 0) {
+        filtered = filtered.filter((item) =>
+          selectedTags.every(
+            (tag) => Array.isArray(item.tags) && item.tags.includes(tag)
+          )
+        );
+      }
+
+      if (searchQuery.trim() !== "") {
+        // Sanitize search query to prevent injection
+        const sanitizedQuery = searchQuery.replace(/[<>]/g, "");
+        filtered = filtered.filter(
+          (item) =>
+            item.name &&
+            item.name.toLowerCase().includes(sanitizedQuery.toLowerCase())
+        );
+      }
+
+      const sorted = [...filtered].sort((a, b) => {
+        if (sortOption === "priceLowHigh") return a.price - b.price;
+        if (sortOption === "priceHighLow") return b.price - a.price;
+        if (sortOption === "popularity") return b.popularity - a.popularity;
+        return 0;
+      });
+
+      return sorted;
+    } catch (error) {
+      console.error("Error filtering and sorting menu:", error);
+      toast.error("Failed to load menu items.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return [];
     }
-
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter((item) =>
-        selectedTags.every((tag) => item.tags.includes(tag))
-      );
-    }
-
-    if (searchQuery.trim() !== "") {
-      filtered = filtered.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    const sorted = [...filtered].sort((a, b) => {
-      if (sortOption === "priceLowHigh") return a.price - b.price;
-      if (sortOption === "priceHighLow") return b.price - a.price;
-      if (sortOption === "popularity") return b.popularity - a.popularity;
-      return 0;
-    });
-
-    return sorted;
-  }, [selectedCategory, selectedTags, sortOption, searchQuery]);
+  }, [selectedCategory, selectedTags, sortOption, searchQuery, menuData]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
+
+  // Enhanced search input handler with validation
+  const handleSearchChange = (e) => {
+    try {
+      const value = e.target.value;
+      if (value.length <= 100) {
+        // Limit to 100 characters
+        // Sanitize input to remove potentially harmful characters
+        const sanitizedValue = value.replace(/[<>]/g, "");
+        setSearchQuery(sanitizedValue);
+      } else {
+        toast.warn("Search query cannot exceed 100 characters.", {
+          position: "bottom-right",
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      console.error("Error handling search input:", error);
+      toast.error("Failed to process search input.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
+  // Enhanced add to cart handler with error handling
+  const handleAddToCart = useCallback(
+    (item) => {
+      try {
+        if (!item || !item.id || !item.name || !item.price) {
+          throw new Error("Invalid item data.");
+        }
+        addItem(item);
+        toast.success(`${item.name} added to cart!`);
+      } catch (error) {
+        console.error("Error adding item to cart:", error);
+        toast.error(`Failed to add ${item?.name || "item"} to cart.`);
+      }
+    },
+    [addItem]
+  );
+
+  // Effect to validate menuData integrity on mount
+  useEffect(() => {
+    if (!Array.isArray(menuData)) {
+      toast.error("Menu data is corrupted.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+    }
+  }, []);
 
   return (
     <PageContainer>
@@ -550,31 +687,42 @@ const MenuPage = () => {
         {/* Sidebar Filters (Desktop Only) */}
         <Sidebar>
           <div className="clear-filters">
-            <button onClick={clearFilters}>Clear Filters</button>
+            <button onClick={clearFilters} aria-label="Clear All Filters">
+              Clear Filters
+            </button>
           </div>
-          {Object.keys(filterCategories).map((filterCategory) => (
-            <div className="filter-group" key={filterCategory}>
-              <h3>{filterCategory}</h3>
-              <div className="filter-options">
-                {filterCategories[filterCategory].map((tag) => (
-                  <FilterOption key={tag} checked={selectedTags.includes(tag)}>
-                    <input
-                      type="checkbox"
+          {Object.keys(filterCategories).length === 0 ? (
+            <p>No filters available.</p>
+          ) : (
+            Object.keys(filterCategories).map((filterCategory) => (
+              <div className="filter-group" key={filterCategory}>
+                <h3>{filterCategory}</h3>
+                <div className="filter-options">
+                  {filterCategories[filterCategory].map((tag) => (
+                    <FilterOption
+                      key={tag}
                       checked={selectedTags.includes(tag)}
-                      onChange={() => toggleTag(tag)}
-                      aria-label={`Filter by ${tag}`}
-                    />
-                    {selectedTags.includes(tag) ? (
-                      <FaCheckSquare />
-                    ) : (
-                      <FaSquare />
-                    )}
-                    <span>{tag}</span>
-                  </FilterOption>
-                ))}
+                      htmlFor={`filter-${tag}`}
+                    >
+                      <input
+                        id={`filter-${tag}`}
+                        type="checkbox"
+                        checked={selectedTags.includes(tag)}
+                        onChange={() => toggleTag(tag)}
+                        aria-label={`Filter by ${tag}`}
+                      />
+                      {selectedTags.includes(tag) ? (
+                        <FaCheckSquare aria-hidden="true" />
+                      ) : (
+                        <FaSquare aria-hidden="true" />
+                      )}
+                      <span>{tag}</span>
+                    </FilterOption>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </Sidebar>
 
         {/* Main Content */}
@@ -585,6 +733,7 @@ const MenuPage = () => {
               className="dropdown-button"
               onClick={toggleDropdown}
               aria-label="Toggle Filters"
+              aria-expanded={isDropdownOpen}
             >
               <span>
                 <FaFilter /> Filters
@@ -601,34 +750,42 @@ const MenuPage = () => {
                   <FaTimes />
                 </button>
                 <div className="clear-filters">
-                  <button onClick={clearFilters}>Clear Filters</button>
+                  <button onClick={clearFilters} aria-label="Clear All Filters">
+                    Clear Filters
+                  </button>
                 </div>
-                {Object.keys(filterCategories).map((filterCategory) => (
-                  <div className="filter-group" key={filterCategory}>
-                    <h3>{filterCategory}</h3>
-                    <div className="filter-options">
-                      {filterCategories[filterCategory].map((tag) => (
-                        <FilterOption
-                          key={tag}
-                          checked={selectedTags.includes(tag)}
-                        >
-                          <input
-                            type="checkbox"
+                {Object.keys(filterCategories).length === 0 ? (
+                  <p>No filters available.</p>
+                ) : (
+                  Object.keys(filterCategories).map((filterCategory) => (
+                    <div className="filter-group" key={filterCategory}>
+                      <h3>{filterCategory}</h3>
+                      <div className="filter-options">
+                        {filterCategories[filterCategory].map((tag) => (
+                          <FilterOption
+                            key={tag}
                             checked={selectedTags.includes(tag)}
-                            onChange={() => toggleTag(tag)}
-                            aria-label={`Filter by ${tag}`}
-                          />
-                          {selectedTags.includes(tag) ? (
-                            <FaCheckSquare />
-                          ) : (
-                            <FaSquare />
-                          )}
-                          <span>{tag}</span>
-                        </FilterOption>
-                      ))}
+                            htmlFor={`mobile-filter-${tag}`}
+                          >
+                            <input
+                              id={`mobile-filter-${tag}`}
+                              type="checkbox"
+                              checked={selectedTags.includes(tag)}
+                              onChange={() => toggleTag(tag)}
+                              aria-label={`Filter by ${tag}`}
+                            />
+                            {selectedTags.includes(tag) ? (
+                              <FaCheckSquare aria-hidden="true" />
+                            ) : (
+                              <FaSquare aria-hidden="true" />
+                            )}
+                            <span>{tag}</span>
+                          </FilterOption>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             )}
           </MobileFiltersDropdown>
@@ -636,13 +793,14 @@ const MenuPage = () => {
           {/* Top Controls */}
           <div className="top-controls">
             <div className="search-bar">
-              <FaSearch />
+              <FaSearch aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search Items..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
                 aria-label="Search Menu Items"
+                maxLength={100} // Enforce max length at input level
               />
             </div>
             <div className="sort-dropdown">
@@ -661,12 +819,15 @@ const MenuPage = () => {
           </div>
 
           {/* Category Tabs */}
-          <div className="category-tabs">
+          <div className="category-tabs" role="tablist">
             {categories.map((category) => (
               <button
                 key={category.name}
                 className={selectedCategory === category.name ? "active" : ""}
                 onClick={() => handleCategorySelect(category.name)}
+                role="tab"
+                aria-selected={selectedCategory === category.name}
+                aria-label={`Filter by category ${category.name}`}
               >
                 {category.icon} {category.name}
               </button>
@@ -681,7 +842,11 @@ const MenuPage = () => {
           ) : (
             <div className="menu-grid">
               {filteredAndSortedMenu.map((item) => (
-                <MenuItem key={item.id} {...item} />
+                <MenuItem
+                  key={item.id}
+                  {...item}
+                  onAddToCart={() => handleAddToCart(item)} // Pass the enhanced handler
+                />
               ))}
             </div>
           )}

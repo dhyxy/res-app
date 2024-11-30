@@ -3,6 +3,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import PropTypes from "prop-types";
+
+// Styled Components
 
 const Overlay = styled.div`
   position: fixed;
@@ -10,7 +13,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,7 +21,7 @@ const Overlay = styled.div`
 `;
 
 const ModalContainer = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.modalBg || "#fff"};
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
@@ -26,32 +29,47 @@ const ModalContainer = styled.div`
   max-width: 90%;
   text-align: center;
   position: relative;
+
+  @media (max-width: 480px) {
+    padding: 15px;
+  }
 `;
 
 const CloseButton = styled.button`
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
   cursor: pointer;
+  color: #333;
+
+  &:hover {
+    color: #4a90e2;
+  }
+
+  @media (max-width: 480px) {
+    top: 8px;
+    right: 8px;
+    font-size: 20px;
+  }
 `;
 
 const Message = styled.p`
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: #333;
 `;
 
 const OrderIdText = styled.p`
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #555;
   margin-top: 10px;
   font-weight: bold;
 `;
 
 const NoteText = styled.p`
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #777;
   margin-top: 15px;
   line-height: 1.4;
@@ -62,16 +80,20 @@ const ButtonContainer = styled.div`
   flex-direction: column;
   gap: 10px;
   margin-top: 20px;
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 `;
 
 const ActionButton = styled.button`
   background-color: #4a90e2;
-  color: white;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
-  padding: 10px 15px;
-  font-size: 1rem;
+  padding: 12px 20px;
   cursor: pointer;
+  font-size: 1rem;
   transition: background-color 0.3s;
 
   &:hover {
@@ -79,9 +101,16 @@ const ActionButton = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #4a90e2;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 16px;
+    font-size: 0.95rem;
   }
 `;
+
+// SuccessModal Component
 
 const SuccessModal = ({ onClose, message, orderId }) => {
   const navigate = useNavigate();
@@ -100,6 +129,17 @@ const SuccessModal = ({ onClose, message, orderId }) => {
     navigate("/request-services", { state: { orderId } });
     onClose(); // Close the modal
   };
+
+  // Close the modal when pressing the Esc key
+  React.useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
   return (
     <Overlay role="dialog" aria-modal="true" onClick={onClose}>
@@ -126,6 +166,13 @@ const SuccessModal = ({ onClose, message, orderId }) => {
       </ModalContainer>
     </Overlay>
   );
+};
+
+// PropTypes for SuccessModal
+SuccessModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  message: PropTypes.string.isRequired,
+  orderId: PropTypes.string.isRequired,
 };
 
 export default SuccessModal;

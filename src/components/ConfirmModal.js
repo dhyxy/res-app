@@ -24,10 +24,11 @@ const Overlay = styled.div`
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
+  display: ${({ isModalOpen }) => (isModalOpen ? "flex" : "none")};
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const ModalContainer = styled.div`
@@ -71,21 +72,6 @@ const ButtonContainer = styled.div`
 `;
 
 const ConfirmButton = styled.button`
-  background-color: #ff4d4d;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #cc0000;
-  }
-`;
-
-const CancelButton = styled.button`
   background-color: #4a90e2;
   color: #ffffff;
   border: none;
@@ -100,7 +86,22 @@ const CancelButton = styled.button`
   }
 `;
 
-const ConfirmModal = ({ message, onConfirm, onCancel }) => {
+const CancelButton = styled.button`
+  background-color: #ff4d4d;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #cc0000;
+  }
+`;
+
+const ConfirmModal = ({ isModalOpen, title, message, onConfirm, onCancel }) => {
   // Close the modal when clicking outside the modal content
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -120,7 +121,12 @@ const ConfirmModal = ({ message, onConfirm, onCancel }) => {
   }, [onCancel]);
 
   return (
-    <Overlay onClick={handleOverlayClick} role="dialog" aria-modal="true">
+    <Overlay
+      isModalOpen={isModalOpen}
+      onClick={handleOverlayClick}
+      role="dialog"
+      aria-modal="true"
+    >
       <ModalContainer>
         <CloseButton onClick={onCancel} aria-label="Close Modal">
           &times;
@@ -140,6 +146,8 @@ const ConfirmModal = ({ message, onConfirm, onCancel }) => {
 };
 
 ConfirmModal.propTypes = {
+  isModalOpen: PropTypes.bool.isRequired,
+  title: PropTypes.string, // Optional, can be used if needed
   message: PropTypes.string.isRequired,
   onConfirm: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,

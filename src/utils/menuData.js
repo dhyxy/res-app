@@ -79,6 +79,20 @@ const menuData = [
         removable: true,
       },
     ],
+    reviews: [
+      {
+        username: "Charlie",
+        rating: 5,
+        comment: "Best pizza in town!",
+        date: "2023-09-20",
+      },
+      {
+        username: "Dana",
+        rating: 4,
+        comment: "Good taste but a bit too greasy.",
+        date: "2023-09-22",
+      },
+    ],
   },
   {
     id: 3,
@@ -801,5 +815,30 @@ const menuData = [
     ],
   },
 ];
+
+// Basic Validation on Export
+const validateMenuData = (data) => {
+  if (!Array.isArray(data)) {
+    console.error("menuData should be an array.");
+    return [];
+  }
+
+  return data.filter((item) => {
+    const hasRequiredFields =
+      typeof item.id === "number" &&
+      typeof item.name === "string" &&
+      typeof item.category === "string" &&
+      typeof item.price === "number" &&
+      Array.isArray(item.tags) &&
+      typeof item.description === "string" &&
+      Array.isArray(item.customizations);
+
+    if (!hasRequiredFields) {
+      console.warn(`Menu item with id ${item.id} is missing required fields.`);
+    }
+
+    return hasRequiredFields;
+  });
+};
 
 export default menuData;

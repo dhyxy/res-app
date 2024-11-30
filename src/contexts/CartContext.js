@@ -32,66 +32,122 @@ const areCustomizationsEqual = (custom1, custom2) => {
 function cartReducer(state, action) {
   switch (action.type) {
     case "ADD_ITEM":
-      const { id, name, price, customizations } = action.payload;
-      // Check if item with same id and customizations exists
-      const existingItemIndex = state.items.findIndex(
-        (item) =>
-          item.id === id &&
-          areCustomizationsEqual(item.customizations, customizations)
-      );
-      if (existingItemIndex !== -1) {
-        // Item exists, increase quantity
-        const updatedItems = [...state.items];
-        updatedItems[existingItemIndex].quantity += 1;
-        return {
-          ...state,
-          items: updatedItems,
-        };
-      } else {
-        // New item, add to cart
-        return {
-          ...state,
-          items: [
-            ...state.items,
-            { id, name, price, quantity: 1, customizations },
-          ],
-        };
+      try {
+        const { id, name, price, customizations } = action.payload;
+        if (
+          typeof id !== "number" ||
+          typeof name !== "string" ||
+          typeof price !== "number"
+        ) {
+          throw new Error("Invalid item data.");
+        }
+        // Check if item with same id and customizations exists
+        const existingItemIndex = state.items.findIndex(
+          (item) =>
+            item.id === id &&
+            areCustomizationsEqual(item.customizations, customizations)
+        );
+        if (existingItemIndex !== -1) {
+          // Item exists, increase quantity
+          const updatedItems = [...state.items];
+          updatedItems[existingItemIndex].quantity += 1;
+          return {
+            ...state,
+            items: updatedItems,
+          };
+        } else {
+          // New item, add to cart
+          return {
+            ...state,
+            items: [
+              ...state.items,
+              { id, name, price, quantity: 1, customizations },
+            ],
+          };
+        }
+      } catch (error) {
+        console.error("Error in ADD_ITEM action:", error);
+        return state; // Do not modify state on error
       }
+
     case "REMOVE_ITEM":
-      return {
-        ...state,
-        items: state.items.filter((item, index) => index !== action.payload),
-      };
+      try {
+        if (typeof action.payload !== "number") {
+          throw new Error("Invalid payload for REMOVE_ITEM.");
+        }
+        return {
+          ...state,
+          items: state.items.filter((item, index) => index !== action.payload),
+        };
+      } catch (error) {
+        console.error("Error in REMOVE_ITEM action:", error);
+        return state;
+      }
+
     case "INCREASE_QUANTITY":
-      return {
-        ...state,
-        items: state.items.map((item, index) =>
-          index === action.payload
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        ),
-      };
-    case "DECREASE_QUANTITY":
-      return {
-        ...state,
-        items: state.items
-          .map((item, index) =>
+      try {
+        if (typeof action.payload !== "number") {
+          throw new Error("Invalid payload for INCREASE_QUANTITY.");
+        }
+        return {
+          ...state,
+          items: state.items.map((item, index) =>
             index === action.payload
-              ? { ...item, quantity: item.quantity - 1 }
+              ? { ...item, quantity: item.quantity + 1 }
               : item
-          )
-          .filter((item) => item.quantity > 0),
-      };
+          ),
+        };
+      } catch (error) {
+        console.error("Error in INCREASE_QUANTITY action:", error);
+        return state;
+      }
+
+    case "DECREASE_QUANTITY":
+      try {
+        if (typeof action.payload !== "number") {
+          throw new Error("Invalid payload for DECREASE_QUANTITY.");
+        }
+        return {
+          ...state,
+          items: state.items
+            .map((item, index) =>
+              index === action.payload
+                ? { ...item, quantity: item.quantity - 1 }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        };
+      } catch (error) {
+        console.error("Error in DECREASE_QUANTITY action:", error);
+        return state;
+      }
+
     case "CLEAR_CART":
       return initialState;
+
     case "UPDATE_CUSTOMIZATIONS":
-      const { index, newCustomizations } = action.payload;
-      const updatedCartItems = [...state.items];
-      updatedCartItems[index].customizations = newCustomizations;
-      return {
-        ...state,
-        items: updatedCartItems,
-      };
+      try {
+        const { index, newCustomizations } = action.payload;
+        if (
+          typeof index !== "number" ||
+          typeof newCustomizations !== "object"
+        ) {
+          throw new Error("Invalid payload for UPDATE_CUSTOMIZATIONS.");
+        }
+        const updatedCartItems = [...state.items];
+        if (!updatedCartItems[index]) {
+          throw new Error("Item index out of range.");
+        }
+        updatedCartItems[index].customizations = newCustomizations;
+        return {
+          ...state,
+          items: updatedCartItems,
+        };
+      } catch (error) {
+        console.error("Error in UPDATE_CUSTOMIZATIONS action:", error);
+        return state;
+      }
+
     default:
       return state;
   }

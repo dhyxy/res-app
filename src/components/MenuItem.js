@@ -1,5 +1,3 @@
-// src/components/MenuItem.js
-
 import React, { useState, useContext } from "react";
 import styled from "styled-components";
 import { CartContext } from "../contexts/CartContext";
@@ -19,9 +17,13 @@ import {
   FaGlassMartiniAlt,
   FaCoffee,
   FaFilter,
+  FaPrayingHands,
+  FaSeedling,
+  FaNutritionix,
 } from "react-icons/fa";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
+import ReviewSection from "./ReviewSection";
 
 const MenuItemCard = styled.div`
   background: #fff;
@@ -39,19 +41,18 @@ const MenuItemCard = styled.div`
 
   .image-wrapper {
     width: 100%;
-    height: 180px; /* Fixed height to ensure all images are the same size */
+    height: 180px;
     background-color: #f9f9f9;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 8px; /* Rounded corners for the wrapper */
 
     .food-image {
       width: 100%;
       height: 100%;
-      object-fit: cover; /* Ensures uniform size by cropping excess content */
-      border-radius: 8px; /* Ensures the image follows the wrapper's rounded corners */
+      object-fit: cover;
+      border-radius: 10px;
     }
   }
 
@@ -111,7 +112,6 @@ const MenuItemCard = styled.div`
       margin: 5px 0;
       font-size: 0.85rem;
       color: #666;
-      /* Removed line-clamp styles to allow dynamic height */
     }
 
     .read-more-button {
@@ -140,11 +140,38 @@ const MenuItemCard = styled.div`
       color: #4a90e2;
       margin-top: 8px;
     }
+
+    .buttons-container {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+
+      /* Ensure buttons have consistent sizes */
+      button {
+        flex: 1; /* Each button takes equal space */
+        max-width: 150px; /* Optional: Limit maximum width to prevent excessive stretching */
+      }
+
+      /* Responsive styles */
+      @media (max-width: 768px) {
+        gap: 8px; /* Adjust gap between buttons */
+      }
+
+      @media (max-width: 480px) {
+        flex-direction: row; /* Keep buttons side by side */
+        gap: 6px; /* Further reduce gap */
+        justify-content: center; /* Center-align buttons */
+        button {
+          flex: 1; /* Buttons remain evenly sized */
+        }
+      }
+    }
   }
 `;
 
-const AddToCartButton = styled.button`
-  margin-top: auto;
+const Button = styled.button`
   padding: 8px 12px;
   background-color: #4a90e2;
   border: none;
@@ -153,6 +180,8 @@ const AddToCartButton = styled.button`
   cursor: pointer;
   transition: background-color 0.3s ease;
   font-size: 0.85rem;
+  flex: 1;
+  text-align: center;
 
   &:hover {
     background-color: #357ab8;
@@ -165,6 +194,54 @@ const AddToCartButton = styled.button`
 
   &:focus {
     outline: 2px solid rgba(74, 144, 226, 0.5);
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    font-size: 0.8rem; /* Slightly smaller font */
+    padding: 6px 10px; /* Reduce padding */
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.75rem; /* Even smaller font for narrow screens */
+    padding: 10px 8px; /* Further reduce padding */
+  }
+`;
+
+const ReviewsButton = styled.button`
+  padding: 8px 12px;
+  background-color: #4a90e2;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.85rem;
+  flex: 1;
+  text-align: center;
+
+  &:hover {
+    background-color: #357ab8;
+  }
+
+  &:disabled {
+    background-color: #a0c4e3;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(74, 144, 226, 0.5);
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    font-size: 0.8rem; /* Slightly smaller font */
+    padding: 6px 10px; /* Reduce padding */
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.75rem; /* Even smaller font for narrow screens */
+    padding: 17px 8px; /* Further reduce padding */
   }
 `;
 
@@ -186,10 +263,12 @@ const ModalContent = styled.div`
   padding: 25px;
   border-radius: 10px;
   width: 90%;
-  max-width: 450px;
+  max-width: 600px;
   position: relative;
   display: flex;
   flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
 
   h2 {
     margin-top: 0;
@@ -290,7 +369,7 @@ const CancelButton = styled.button`
 
 const tagIconMapping = {
   Vegan: <FaLeaf />,
-  Vegetarian: <FaLeaf />,
+  Vegetarian: <FaSeedling />,
   "Gluten-Free": <FaLeaf />,
   Spicy: <FaFire />,
   Alcoholic: <FaWineBottle />,
@@ -300,46 +379,71 @@ const tagIconMapping = {
   Lunch: <FaHamburger />,
   Dinner: <FaUtensils />,
   Appetizer: <FaGlassMartiniAlt />,
+  Kosher: <FaPrayingHands />,
+  Halal: <FaPrayingHands />,
+  "Contains Nuts": <FaNutritionix />,
   Miscellaneous: <FaFilter />,
 };
 
-const MenuItem = React.memo(
-  ({
-    id,
-    image,
-    name,
-    tags,
-    price,
-    description,
-    customizations,
-    rating,
-    numReviews,
-  }) => {
-    const [imgSrc, setImgSrc] = useState(image);
-    const { addItem } = useContext(CartContext);
-    const [isAdding, setIsAdding] = useState(false);
+const MenuItem = ({
+  id,
+  image,
+  name,
+  tags,
+  price,
+  description,
+  customizations,
+  rating,
+  numReviews,
+  reviews,
+}) => {
+  const [imgSrc, setImgSrc] = useState(image || fallbackImage);
+  const { addItem } = useContext(CartContext);
+  const [isAdding, setIsAdding] = useState(false);
 
-    // Customization State
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedOptions, setSelectedOptions] = useState({});
+  // Customization State
+  const [isCustomizationModalOpen, setIsCustomizationModalOpen] =
+    useState(false);
+  const [selectedOptions, setSelectedOptions] = useState({});
 
-    // Description Expansion State
-    const [isExpanded, setIsExpanded] = useState(false);
+  // Review Modal State
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  // State for managing reviews
+  const [itemReviews, setItemReviews] = useState(reviews || []);
 
-    const handleError = () => {
-      setImgSrc(fallbackImage);
-    };
+  // Description Expansion State
+  const [isExpanded, setIsExpanded] = useState(false);
 
-    const handleAddToCartClick = () => {
-      if (customizations && customizations.length > 0) {
-        setIsModalOpen(true);
-      } else {
-        handleAddItem({});
-      }
-    };
+  const handleAddReview = (newReview) => {
+    setItemReviews((prevReviews) => [newReview, ...prevReviews]);
+  };
 
-    const handleAddItem = (customizationsSelected) => {
+  const handleError = () => {
+    setImgSrc(fallbackImage);
+    toast.warn(`Image failed to load for ${name}.`, {
+      position: "bottom-right",
+      autoClose: 2000,
+    });
+  };
+
+  const handleAddToCartClick = () => {
+    if (
+      customizations &&
+      Array.isArray(customizations) &&
+      customizations.length > 0
+    ) {
+      setIsCustomizationModalOpen(true);
+    } else {
+      handleAddItem({});
+    }
+  };
+
+  const handleAddItem = (customizationsSelected) => {
+    try {
       setIsAdding(true);
+      if (!id || !name || typeof price !== "number") {
+        throw new Error("Missing essential item data.");
+      }
       addItem({
         id,
         name,
@@ -356,230 +460,285 @@ const MenuItem = React.memo(
         draggable: false,
         icon: "🛒",
       });
-
-      setIsAdding(false);
-    };
-
-    const handleCustomizationChange = (category, option) => {
-      setSelectedOptions((prev) => {
-        const currentOptions = Array.isArray(prev[category])
-          ? prev[category]
-          : [];
-        if (currentOptions.includes(option)) {
-          return {
-            ...prev,
-            [category]: currentOptions.filter((opt) => opt !== option),
-          };
-        } else {
-          return {
-            ...prev,
-            [category]: [...currentOptions, option],
-          };
-        }
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+      toast.error(`Failed to add ${name || "item"} to cart.`, {
+        position: "bottom-right",
+        autoClose: 3000,
       });
-    };
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
-    const handleConfirmCustomization = () => {
-      handleAddItem(selectedOptions);
-      setIsModalOpen(false);
-      setSelectedOptions({});
-    };
-
-    const handleCancelCustomization = () => {
-      setIsModalOpen(false);
-      setSelectedOptions({});
-    };
-
-    const toggleExpanded = () => {
-      setIsExpanded((prev) => !prev);
-    };
-
-    const renderStars = (rating) => {
-      const stars = [];
-      const fullStars = Math.floor(rating);
-      const hasHalfStar = rating - fullStars >= 0.5;
-
-      for (let i = 0; i < fullStars; i++) {
-        stars.push(<FaStar key={`star-full-${i}`} color="#FFD700" />);
+  const handleCustomizationChange = (category, option) => {
+    setSelectedOptions((prev) => {
+      const currentOptions = Array.isArray(prev[category])
+        ? prev[category]
+        : [];
+      if (currentOptions.includes(option)) {
+        return {
+          ...prev,
+          [category]: currentOptions.filter((opt) => opt !== option),
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: [...currentOptions, option],
+        };
       }
+    });
+  };
 
-      if (hasHalfStar) {
-        stars.push(<FaStarHalfAlt key="star-half" color="#FFD700" />);
-      }
+  const handleConfirmCustomization = () => {
+    handleAddItem(selectedOptions);
+    setIsCustomizationModalOpen(false);
+    setSelectedOptions({});
+  };
 
-      while (stars.length < 5) {
-        stars.push(
-          <FaRegStar key={`star-empty-${stars.length}`} color="#FFD700" />
-        );
-      }
+  const handleCancelCustomization = () => {
+    setIsCustomizationModalOpen(false);
+    setSelectedOptions({});
+  };
 
-      return stars;
-    };
+  const toggleExpanded = () => {
+    setIsExpanded((prev) => !prev);
+  };
 
-    // Function to truncate description to first 7 words
-    const truncateDescription = (text, wordLimit) => {
-      const words = text.split(" ");
-      if (words.length <= wordLimit) {
-        return text;
-      }
-      const truncated = words.slice(0, wordLimit).join(" ");
-      return truncated;
-    };
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating - fullStars >= 0.5;
 
-    const wordLimit = 7;
-    const isLongDescription = description.split(" ").length > wordLimit;
-    const displayedDescription = isExpanded
-      ? description
-      : truncateDescription(description, wordLimit);
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={`star-full-${i}`} color="#FFD700" />);
+    }
 
-    return (
-      <>
-        <MenuItemCard>
-          <div className="image-wrapper">
-            <LazyLoadImage
-              src={imgSrc}
-              alt={name}
-              onError={handleError}
-              effect="blur"
-              className="food-image"
-            />
-          </div>
-          <div className="details">
-            <div className="tags">
-              {tags.map((tag, index) => (
+    if (hasHalfStar) {
+      stars.push(<FaStarHalfAlt key="star-half" color="#FFD700" />);
+    }
+
+    while (stars.length < 5) {
+      stars.push(
+        <FaRegStar key={`star-empty-${stars.length}`} color="#FFD700" />
+      );
+    }
+
+    return stars;
+  };
+
+  // Function to truncate description to first 15 words
+  const truncateDescription = (text, wordLimit) => {
+    const words = text.split(" ");
+    if (words.length <= wordLimit) {
+      return text;
+    }
+    const truncated = words.slice(0, wordLimit).join(" ");
+    return truncated;
+  };
+
+  const wordLimit = 5;
+  const isLongDescription =
+    description && description.split(" ").length > wordLimit;
+  const displayedDescription = isExpanded
+    ? description
+    : truncateDescription(description, wordLimit);
+
+  return (
+    <>
+      <MenuItemCard>
+        <div className="image-wrapper">
+          <LazyLoadImage
+            src={imgSrc}
+            alt={name || "Menu Item"}
+            onError={handleError}
+            effect="blur"
+            className="food-image"
+          />
+        </div>
+        <div className="details">
+          <div className="tags">
+            {tags && Array.isArray(tags) && tags.length > 0 ? (
+              tags.map((tag, index) => (
                 <span key={index}>
                   {tagIconMapping[tag] || <FaUtensils />} {tag}
                 </span>
-              ))}
-            </div>
-            <h3>
-              {name}{" "}
-              {(tags.includes("Vegan") || tags.includes("Vegetarian")) && (
+              ))
+            ) : (
+              <span>No Tags</span>
+            )}
+          </div>
+          <h3>
+            {name || "Unnamed Item"}{" "}
+            {tags &&
+              (tags.includes("Vegan") || tags.includes("Vegetarian")) && (
                 <FaLeaf title="Vegetarian/Vegan" />
               )}
-            </h3>
-            <div className="rating">
-              <div className="stars">{renderStars(rating)}</div>
-              <div className="num-reviews">({numReviews} reviews)</div>
+          </h3>
+          <div className="rating">
+            <div className="stars">
+              {rating ? renderStars(rating) : <FaRegStar color="#FFD700" />}
             </div>
-            <p className="description">
-              {displayedDescription}
-              {isLongDescription && (
-                <button
-                  className="read-more-button"
-                  onClick={toggleExpanded}
-                  aria-label={
-                    isExpanded
-                      ? " ...Read less about " + name
-                      : " ...Read more about " + name
-                  }
-                >
-                  {isExpanded ? "Read Less" : "  ...Read More"}
-                </button>
-              )}
-            </p>
-            <p className="price">${price.toFixed(2)}</p>
+            <div className="num-reviews">
+              {numReviews ? `(${numReviews} reviews)` : "(No reviews)"}
+            </div>
           </div>
-          <AddToCartButton
-            onClick={handleAddToCartClick}
-            aria-label={`Add ${name} to Order`}
-            disabled={isAdding}
-          >
-            {isAdding ? "Adding..." : "Add to Order"}
-          </AddToCartButton>
-        </MenuItemCard>
-
-        {/* Customization Modal */}
-        {isModalOpen && (
-          <ModalOverlay
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                handleCancelCustomization();
-              }
-            }}
-            role="dialog"
-            aria-modal="true"
-          >
-            <ModalContent>
-              <CloseButton
-                onClick={handleCancelCustomization}
-                aria-label="Close Customization Modal"
+          <p className="description">
+            {displayedDescription}
+            {isLongDescription && (
+              <button
+                className="read-more-button"
+                onClick={toggleExpanded}
+                aria-label={
+                  isExpanded
+                    ? `Read less about ${name || "item"}`
+                    : `Read more about ${name || "item"}`
+                }
               >
-                &times;
-              </CloseButton>
-              <h2>Customize Your {name}</h2>
-              {customizations &&
-              Array.isArray(customizations) &&
-              customizations.length > 0 ? (
-                customizations.map((customization, index) => (
-                  <div key={index} className="customization-options">
-                    <h4>{customization.name}</h4>
-                    {Array.isArray(customization.options) ? (
-                      customization.options.map((option, idx) => (
-                        <label key={idx}>
-                          <input
-                            type={
-                              customization.removable ? "checkbox" : "radio"
-                            }
-                            name={customization.name}
-                            value={option}
-                            checked={
-                              customization.removable
-                                ? Array.isArray(
-                                    selectedOptions[customization.name]
-                                  ) &&
-                                  selectedOptions[customization.name].includes(
-                                    option
-                                  )
-                                : selectedOptions[customization.name] === option
-                            }
-                            onChange={() =>
-                              customization.removable
-                                ? handleCustomizationChange(
-                                    customization.name,
-                                    option
-                                  )
-                                : setSelectedOptions((prev) => ({
-                                    ...prev,
-                                    [customization.name]: option,
-                                  }))
-                            }
-                            aria-label={
-                              customization.removable
-                                ? `Toggle ${option}`
-                                : `Select ${option}`
-                            }
-                          />
-                          {customization.removable
-                            ? ` Remove ${option}`
-                            : ` Add ${option}`}
-                        </label>
-                      ))
-                    ) : (
-                      <span>No options available</span>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p>No customization options available for this item.</p>
-              )}
-              <div className="buttons">
-                <CancelButton onClick={handleCancelCustomization}>
-                  Cancel
-                </CancelButton>
-                <ConfirmButton
-                  onClick={handleConfirmCustomization}
-                  disabled={isAdding}
-                >
-                  {isAdding ? "Adding..." : "Confirm"}
-                </ConfirmButton>
-              </div>
-            </ModalContent>
-          </ModalOverlay>
-        )}
-      </>
-    );
-  }
-);
+                {isExpanded ? " Read Less" : " ...Read More"}
+              </button>
+            )}
+          </p>
+          <p className="price">
+            {typeof price === "number"
+              ? `$${price.toFixed(2)}`
+              : "Price Unavailable"}
+          </p>
+          <div className="buttons-container">
+            <ReviewsButton
+              onClick={() => setIsReviewModalOpen(true)}
+              aria-label={`View reviews for ${name}`}
+            >
+              Reviews
+            </ReviewsButton>
+            <Button
+              onClick={handleAddToCartClick}
+              aria-label={`Add ${name || "item"} to Order`}
+              disabled={isAdding}
+            >
+              {isAdding ? "Adding..." : "Add to Order"}
+            </Button>
+          </div>
+        </div>
+      </MenuItemCard>
+
+      {/* Customization Modal */}
+      {isCustomizationModalOpen && (
+        <ModalOverlay
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCancelCustomization();
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <ModalContent>
+            <CloseButton
+              onClick={handleCancelCustomization}
+              aria-label="Close Customization Modal"
+            >
+              &times;
+            </CloseButton>
+            <h2>Customize Your {name || "Item"}</h2>
+            {customizations &&
+            Array.isArray(customizations) &&
+            customizations.length > 0 ? (
+              customizations.map((customization, index) => (
+                <div key={index} className="customization-options">
+                  <h4>{customization.name}</h4>
+                  {customization.options &&
+                  Array.isArray(customization.options) ? (
+                    customization.options.map((option, idx) => (
+                      <label key={idx}>
+                        <input
+                          type={customization.removable ? "checkbox" : "radio"}
+                          name={customization.name}
+                          value={option}
+                          checked={
+                            customization.removable
+                              ? Array.isArray(
+                                  selectedOptions[customization.name]
+                                ) &&
+                                selectedOptions[customization.name].includes(
+                                  option
+                                )
+                              : selectedOptions[customization.name] === option
+                          }
+                          onChange={() =>
+                            customization.removable
+                              ? handleCustomizationChange(
+                                  customization.name,
+                                  option
+                                )
+                              : setSelectedOptions((prev) => ({
+                                  ...prev,
+                                  [customization.name]: option,
+                                }))
+                          }
+                          aria-label={
+                            customization.removable
+                              ? `Toggle ${option}`
+                              : `Select ${option}`
+                          }
+                        />
+                        {customization.removable
+                          ? ` Remove ${option}`
+                          : ` Add ${option}`}
+                      </label>
+                    ))
+                  ) : (
+                    <span>No options available</span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p>No customization options available for this item.</p>
+            )}
+            <div className="buttons">
+              <CancelButton onClick={handleCancelCustomization}>
+                Cancel
+              </CancelButton>
+              <ConfirmButton
+                onClick={handleConfirmCustomization}
+                disabled={isAdding}
+              >
+                {isAdding ? "Adding..." : "Confirm"}
+              </ConfirmButton>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Review Modal */}
+      {isReviewModalOpen && (
+        <ModalOverlay
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsReviewModalOpen(false);
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <ModalContent>
+            <CloseButton
+              onClick={() => setIsReviewModalOpen(false)}
+              aria-label="Close Review Modal"
+            >
+              &times;
+            </CloseButton>
+            <h2>Reviews for {name}</h2>
+            <ReviewSection
+              reviews={itemReviews}
+              onAddReview={handleAddReview}
+              itemName={name}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </>
+  );
+};
 
 export default MenuItem;

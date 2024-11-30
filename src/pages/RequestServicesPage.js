@@ -6,6 +6,7 @@ import { OrderContext } from "../contexts/OrderContext";
 import styled from "styled-components";
 import BackButton from "../components/BackButton";
 import { toast } from "react-toastify";
+import ConfirmModal from "../components/ConfirmModal"; // Import the ConfirmModal component
 
 // Styled Components
 
@@ -27,7 +28,8 @@ const Container = styled.div`
 
 const InputContainer = styled.div`
   margin: 20px auto;
-  max-width: 400px;
+  max-width: 500px;
+  text-align: left;
 `;
 
 const InputLabel = styled.label`
@@ -35,34 +37,41 @@ const InputLabel = styled.label`
   margin-bottom: 5px;
   font-size: 1rem;
   color: #333;
+  text-align: center;
 `;
 
 const InputField = styled.input`
   width: 100%;
   padding: 10px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ hasError }) => (hasError ? "#ff4d4d" : "#ddd")};
   border-radius: 5px;
 
   &:focus {
     outline: none;
-    border-color: #4a90e2;
+    border-color: ${({ hasError }) => (hasError ? "#ff4d4d" : "#4a90e2")};
   }
 `;
 
-const SubmitButton = styled.button`
+// New Styled Component for Centering Buttons
+const CenteredButtonWrapper = styled.div`
+  display: flex;
+  justify-content: center;
   margin-top: 15px;
+`;
+
+const SubmitButton = styled.button`
   padding: 12px 20px;
   font-size: 1rem;
-  background-color: #4a90e2;
+  background-color: ${({ disabled }) => (disabled ? "#a0c4e3" : "#4a90e2")};
   border: none;
   border-radius: 8px;
   color: #fff;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #357ab8;
+    background-color: ${({ disabled }) => (disabled ? "#a0c4e3" : "#357ab8")};
   }
 
   &:disabled {
@@ -100,14 +109,14 @@ const TextArea = styled.textarea`
   width: 100%;
   padding: 10px;
   font-size: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ hasError }) => (hasError ? "#ff4d4d" : "#ddd")};
   border-radius: 5px;
   margin-top: 10px;
   resize: vertical;
 
   &:focus {
     outline: none;
-    border-color: #4a90e2;
+    border-color: ${({ hasError }) => (hasError ? "#ff4d4d" : "#4a90e2")};
   }
 `;
 
@@ -173,6 +182,20 @@ const ActionButton = styled.button`
   }
 `;
 
+const ErrorMessage = styled.p`
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  margin-top: 5px;
+`;
+
+const SubmitErrorMessage = styled.p`
+  color: #ff4d4d;
+  font-size: 1rem;
+  margin-top: 10px;
+`;
+
+// Reusable Confirmation Modal Component is replaced by ConfirmModal import
+
 const RequestServicesPage = () => {
   const { getOrderById } = useContext(OrderContext);
   const location = useLocation();
@@ -185,74 +208,141 @@ const RequestServicesPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [autoVerify, setAutoVerify] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [inputError, setInputError] = useState("");
+  const [otherError, setOtherError] = useState("");
+
+  // State for Confirmation Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalAction, setModalAction] = useState(null); // 'requestAnother' or 'trackOrder' or 'goHome'
 
   useEffect(() => {
     if (location.state?.orderId && !autoVerify) {
       setOrderId(location.state.orderId);
       handleVerify(location.state.orderId);
       setAutoVerify(true);
+    } else if (!location.state?.orderId && autoVerify) {
+      // If no orderId is passed and autoVerify was previously true, reset the state
+      setOrderId("");
+      setTableNumber("");
+      setIsVerified(false);
+      setSelectedServices([]);
+      setOtherRequest("");
+      setOrderDetails(null);
+      setAutoVerify(false);
+      setInputError("");
+      setOtherError("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, autoVerify]);
 
+  const validateOrderId = (id) => {
+    // Example validation: alphanumeric and length between 5 and 15
+    const regex = /^[a-zA-Z0-9]{5,15}$/;
+    return regex.test(id);
+  };
+
+  const validateTableNumber = (number) => {
+    const regex = /^\d+$/;
+    return regex.test(number);
+  };
+
   const handleVerify = (id = orderId) => {
-    if (id.trim() !== "") {
-      const order = getOrderById(id.trim());
-      if (order) {
-        setIsVerified(true);
-        setOrderDetails(order);
-        toast.success("Order ID verified!", {
+    const trimmedId = id.trim();
+    const trimmedTableNumber = tableNumber.trim();
+
+    if (trimmedId !== "") {
+      if (!validateOrderId(trimmedId)) {
+        setInputError(
+          "Invalid Order ID format. It should be alphanumeric and 5-15 characters long."
+        );
+        toast.warn("Invalid Order ID format.", {
           position: "bottom-right",
           autoClose: 1500,
           closeButton: true,
           hideProgressBar: true,
           pauseOnHover: true,
           draggable: false,
-          icon: "✅",
+          icon: "⚠️",
         });
-      } else {
+        return;
+      }
+
+      try {
+        const order = getOrderById(trimmedId);
+        if (order) {
+          setIsVerified(true);
+          setOrderDetails(order);
+          setInputError("");
+          toast.success("Order ID verified!", {
+            position: "bottom-right",
+            autoClose: 1500,
+            closeButton: true,
+            hideProgressBar: true,
+            pauseOnHover: true,
+            draggable: false,
+            icon: "✅",
+          });
+        } else {
+          setIsVerified(false);
+          setOrderDetails(null);
+          setInputError("Order not found. Please check your Order ID.");
+          toast.error("Invalid Order ID. Please check and try again.", {
+            position: "bottom-right",
+            autoClose: 3000,
+            closeButton: true,
+            hideProgressBar: true,
+            pauseOnHover: true,
+            draggable: false,
+            icon: "❌",
+          });
+        }
+      } catch (error) {
         setIsVerified(false);
         setOrderDetails(null);
-        toast.error("Invalid Order ID. Please check and try again.", {
+        setInputError("An unexpected error occurred. Please try again later.");
+        toast.error("An unexpected error occurred. Please try again later.", {
           position: "bottom-right",
-          autoClose: 1500,
+          autoClose: 3000,
           closeButton: true,
           hideProgressBar: true,
           pauseOnHover: true,
           draggable: false,
           icon: "❌",
         });
+        console.error("Error verifying order ID:", error);
       }
-    } else if (tableNumber.trim() !== "") {
-      if (/^\d+$/.test(tableNumber.trim())) {
-        setIsVerified(true);
-        toast.success("Table number verified!", {
+    } else if (trimmedTableNumber !== "") {
+      if (!validateTableNumber(trimmedTableNumber)) {
+        setInputError("Invalid Table Number. Please enter a valid number.");
+        toast.warn("Invalid Table Number. Please enter a valid number.", {
           position: "bottom-right",
           autoClose: 1500,
           closeButton: true,
           hideProgressBar: true,
           pauseOnHover: true,
           draggable: false,
-          icon: "✅",
+          icon: "⚠️",
         });
-      } else {
-        setIsVerified(false);
-        toast.error("Invalid Table Number. Please enter a valid number.", {
-          position: "bottom-right",
-          autoClose: 1500,
-          closeButton: true,
-          hideProgressBar: true,
-          pauseOnHover: true,
-          draggable: false,
-          icon: "❌",
-        });
+        return;
       }
-    } else {
-      toast.warn("Please enter your Order ID or Table Number.", {
+      setIsVerified(true);
+      setOrderDetails(null);
+      setInputError("");
+      toast.success("Table number verified!", {
         position: "bottom-right",
         autoClose: 1500,
         closeButton: true,
         hideProgressBar: true,
+        pauseOnHover: true,
+        draggable: false,
+        icon: "✅",
+      });
+    } else {
+      setInputError("Please enter your Order ID or Table Number.");
+      toast.warn("Please enter your Order ID or Table Number.", {
+        position: "bottom-right",
+        autoClose: 1500,
+        closeProgressBar: true,
         pauseOnHover: true,
         draggable: false,
         icon: "⚠️",
@@ -269,7 +359,27 @@ const RequestServicesPage = () => {
   };
 
   const handleSubmitRequest = () => {
-    if (selectedServices.length === 0 && !otherRequest.trim()) {
+    const trimmedOtherRequest = otherRequest.trim();
+    if (selectedServices.includes("Other") && trimmedOtherRequest === "") {
+      setOtherError("Please specify your other request.");
+      toast.warn("Please specify your other request.", {
+        position: "bottom-right",
+        autoClose: 1500,
+        closeButton: true,
+        hideProgressBar: true,
+        pauseOnHover: true,
+        draggable: false,
+        icon: "⚠️",
+      });
+      return;
+    } else {
+      setOtherError("");
+    }
+
+    if (selectedServices.length === 0 && trimmedOtherRequest === "") {
+      setOtherError(
+        "Please select at least one service or enter a custom request."
+      );
       toast.warn(
         "Please select at least one service or enter a custom request.",
         {
@@ -305,34 +415,50 @@ const RequestServicesPage = () => {
       setOtherRequest("");
       setOrderDetails(null);
       setAutoVerify(false);
+      setInputError("");
+      setOtherError("");
     }, 2000);
   };
 
   const handleRequestAnotherService = () => {
-    // Set the action to be canceled
-    setIsVerified(false);
-    setOrderId("");
-    setTableNumber("");
-    setSelectedServices([]);
-    setOtherRequest("");
-    setOrderDetails(null);
-    setAutoVerify(false);
-    toast.info("Request for another service has been initiated.", {
-      position: "bottom-right",
-      autoClose: 1500,
-      hideProgressBar: true,
-      pauseOnHover: true,
-      draggable: false,
-      icon: "ℹ️",
-    });
+    // Open confirmation modal
+    setModalAction("requestAnother");
+    setIsModalOpen(true);
   };
 
   const handleTrackOrder = () => {
-    if (isVerified && orderDetails) {
-      navigate("/order-status", { state: { orderId: orderDetails.orderId } });
-    } else {
-      navigate("/order-status");
+    // Open confirmation modal
+    setModalAction("trackOrder");
+    setIsModalOpen(true);
+  };
+
+  const handleGoHome = () => {
+    // Open confirmation modal for going home
+    setModalAction("goHome");
+    setIsModalOpen(true);
+  };
+
+  const confirmAction = () => {
+    if (modalAction === "requestAnother") {
+      // Navigate to /request-services without state to initiate a new request
+      navigate("/request-services");
+    } else if (modalAction === "trackOrder") {
+      if (isVerified && orderDetails) {
+        navigate("/order-status", { state: { orderId: orderDetails.orderId } });
+      } else {
+        navigate("/order-status");
+      }
+    } else if (modalAction === "goHome") {
+      // Navigate to home page
+      navigate("/");
     }
+    setIsModalOpen(false);
+    setModalAction(null);
+  };
+
+  const cancelAction = () => {
+    setIsModalOpen(false);
+    setModalAction(null);
   };
 
   return (
@@ -341,13 +467,16 @@ const RequestServicesPage = () => {
       <h1>Request Additional Services</h1>
       {!isVerified && (
         <InputContainer>
-          <InputLabel htmlFor="orderId">Enter your Order ID:</InputLabel>
+          <InputLabel htmlFor="orderId">Enter your Order ID</InputLabel>
           <InputField
             id="orderId"
             type="text"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
             aria-label="Order ID"
+            aria-describedby="orderId-error"
+            aria-invalid={inputError ? "true" : "false"}
+            hasError={inputError}
           />
           {/* Uncomment below if you want to allow table number verification */}
           {/*
@@ -361,7 +490,18 @@ const RequestServicesPage = () => {
             aria-label="Table Number"
           />
           */}
-          <SubmitButton onClick={() => handleVerify()}>Verify</SubmitButton>
+          {inputError && (
+            <ErrorMessage id="orderId-error">{inputError}</ErrorMessage>
+          )}
+          <CenteredButtonWrapper>
+            <SubmitButton
+              onClick={() => handleVerify()}
+              disabled={isSubmitting}
+              aria-label="Verify"
+            >
+              {isSubmitting ? "Verifying..." : "Verify"}
+            </SubmitButton>
+          </CenteredButtonWrapper>
         </InputContainer>
       )}
       {isVerified && (
@@ -381,6 +521,7 @@ const RequestServicesPage = () => {
                   value={service}
                   onChange={() => handleServiceChange(service)}
                   checked={selectedServices.includes(service)}
+                  aria-label={service}
                 />
                 <span>{service}</span>
               </Checkbox>
@@ -396,13 +537,27 @@ const RequestServicesPage = () => {
                 value={otherRequest}
                 onChange={(e) => setOtherRequest(e.target.value)}
                 aria-label="Other Service Request"
+                aria-describedby="otherRequest-error"
+                aria-invalid={otherError ? "true" : "false"}
+                hasError={otherError}
               />
+              {otherError && (
+                <ErrorMessage id="otherRequest-error">
+                  {otherError}
+                </ErrorMessage>
+              )}
             </>
           )}
 
-          <SubmitButton onClick={handleSubmitRequest} disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Request"}
-          </SubmitButton>
+          <CenteredButtonWrapper>
+            <SubmitButton
+              onClick={handleSubmitRequest}
+              disabled={isSubmitting}
+              aria-label="Submit Request"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Request"}
+            </SubmitButton>
+          </CenteredButtonWrapper>
         </InputContainer>
       )}
       {isVerified && orderDetails && (
@@ -424,8 +579,37 @@ const RequestServicesPage = () => {
             Request Services for Another Order
           </ActionButton>
           <ActionButton onClick={handleTrackOrder}>Track Order</ActionButton>
+          <ActionButton onClick={handleGoHome}>Home</ActionButton>{" "}
+          {/* Added Home Button */}
         </ButtonContainer>
       )}
+      {isVerified && !orderDetails && (
+        <ButtonContainer>
+          <ActionButton onClick={handleRequestAnotherService}>
+            Request Services for Another Order
+          </ActionButton>
+          <ActionButton onClick={handleTrackOrder}>Track Order</ActionButton>
+          <ActionButton onClick={handleGoHome}>Home</ActionButton>{" "}
+          {/* Added Home Button */}
+        </ButtonContainer>
+      )}
+
+      {/* Confirmation Modal using ConfirmModal Component */}
+      <ConfirmModal
+        isModalOpen={isModalOpen}
+        title={
+          modalAction === "goHome" ? "Confirm Navigation" : "Confirm Action"
+        }
+        message={
+          modalAction === "goHome"
+            ? "Are you sure you want to return to the Home page?"
+            : modalAction === "requestAnother"
+            ? "Are you sure you want to request services for another order?"
+            : "Are you sure you want to track this order?"
+        }
+        onConfirm={confirmAction}
+        onCancel={cancelAction}
+      />
     </Container>
   );
 };

@@ -3,7 +3,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import coolBackground from "../assets/coolbackground.svg";
-import BackButton from "../components/BackButton"; // Import BackButton (optional)
 
 const fadeIn = keyframes`
   from {

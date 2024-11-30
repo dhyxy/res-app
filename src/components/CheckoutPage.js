@@ -1,6 +1,4 @@
-// src/components/CheckoutPage.js
-
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo } from "react";
 import styled from "styled-components";
 import { CartContext } from "../contexts/CartContext";
 import { OrderContext } from "../contexts/OrderContext";
@@ -8,11 +6,13 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import SuccessModal from "./SuccessModal";
 import ConfirmModal from "./ConfirmModal";
+import PaymentConfirmationModal from "./PaymentConfirmationModal";
 import menuData from "../utils/menuData";
 import GooglePayLogo from "../assets/google-pay-logo.svg";
 import ApplePayLogo from "../assets/apple-pay-logo.svg";
 import PayPalLogo from "../assets/paypal-logo.svg";
 import BackButton from "../components/BackButton";
+import PropTypes from "prop-types";
 
 // Constants
 const TAX_RATE = 0.05; // 5% tax
@@ -80,6 +80,10 @@ const EmptyCartButton = styled.button`
   &:disabled {
     background-color: #ffa6a6;
     cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -242,8 +246,13 @@ const QuantityControls = styled.div`
     }
 
     &:focus {
-      outline: none;
+      outline: 2px solid #4a90e2;
     }
+  }
+
+  span {
+    font-size: 1rem;
+    color: #333;
   }
 
   @media (max-width: 480px) {
@@ -251,6 +260,10 @@ const QuantityControls = styled.div`
 
     button {
       padding: 4px 8px;
+      font-size: 0.9rem;
+    }
+
+    span {
       font-size: 0.9rem;
     }
   }
@@ -265,6 +278,7 @@ const Button = styled.button`
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.3s;
+  align-self: flex-start;
 
   &:hover {
     background-color: #357ab8;
@@ -276,7 +290,7 @@ const Button = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -287,7 +301,6 @@ const Button = styled.button`
 
 const RemoveButton = styled(Button)`
   background-color: #ff4d4d;
-  margin-left: auto;
 
   &:hover {
     background-color: #cc0000;
@@ -335,16 +348,42 @@ const DiscountInput = styled.input`
   @media (max-width: 480px) {
     padding: 8px 10px;
     font-size: 0.9rem;
+    width: 100%;
   }
 `;
 
-const ApplyButton = styled(Button)`
+const ApplyButton = styled.button`
+  padding: 10px 12px;
+  background-color: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
   flex-shrink: 0;
-  padding: 10px 14px;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #357ab8;
+  }
+
+  &:disabled {
+    background-color: #a0c4e3;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 2px solid #4a90e2;
+  }
 
   @media (max-width: 480px) {
     padding: 8px 12px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    margin-top: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
@@ -452,6 +491,10 @@ const PaymentButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 600px) {
@@ -568,7 +611,7 @@ const CheckoutButton = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -579,7 +622,7 @@ const CheckoutButton = styled.button`
 `;
 
 // EditButton Styled Component
-const EditButton = styled.button`
+const EditButtonStyled = styled.button`
   padding: 6px 12px;
   background-color: #4a90e2;
   color: #fff;
@@ -600,7 +643,7 @@ const EditButton = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -624,15 +667,17 @@ const ModalOverlay = styled.div`
   z-index: 1000;
 `;
 
-const ModalContent = styled.div`
-  background: ${({ theme }) => theme.modalBg || "#fff"};
+const ModalContentStyled = styled.div`
+  background: #fff;
   padding: 30px 25px;
-  border-radius: ${({ theme }) => theme.borderRadius || "10px"};
+  border-radius: 10px;
   width: 90%;
   max-width: 500px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.3s ease-out;
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   @keyframes fadeIn {
     from {
@@ -707,10 +752,10 @@ const CloseButton = styled.button`
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: ${({ theme }) => theme.textColor || "#333"};
+  color: #333;
 
   &:hover {
-    color: ${({ theme }) => theme.accentColor || "#4a90e2"};
+    color: #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -740,7 +785,7 @@ const ConfirmButtonStyled = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #4a90e2;
   }
 
   @media (max-width: 480px) {
@@ -769,7 +814,7 @@ const CancelButtonStyled = styled.button`
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid #ccc;
   }
 
   @media (max-width: 480px) {
@@ -777,6 +822,52 @@ const CancelButtonStyled = styled.button`
     font-size: 0.95rem;
   }
 `;
+
+// Helper Functions for Validation
+
+const validateCardNumber = (number) => {
+  const sanitized = number.replace(/\s+/g, "");
+  const regex = /^\d{16}$/;
+  if (!regex.test(sanitized)) {
+    return false;
+  }
+  // Luhn Algorithm for additional validation
+  let sum = 0;
+  for (let i = 0; i < 16; i++) {
+    let digit = parseInt(sanitized.charAt(15 - i), 10);
+    if (i % 2 === 1) digit *= 2;
+    if (digit > 9) digit -= 9;
+    sum += digit;
+  }
+  return sum % 10 === 0;
+};
+
+const validateExpiryDate = (expiry) => {
+  const regex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+  if (!regex.test(expiry)) return false;
+  const [month, year] = expiry.split("/").map((part) => parseInt(part, 10));
+  const currentDate = new Date();
+  const currentYear = parseInt(
+    currentDate.getFullYear().toString().slice(-2),
+    10
+  );
+  const currentMonth = currentDate.getMonth() + 1;
+
+  if (year < currentYear) return false;
+  if (year === currentYear && month < currentMonth) return false;
+
+  return true;
+};
+
+const validateCVV = (cvv) => {
+  const regex = /^\d{3,4}$/;
+  return regex.test(cvv);
+};
+
+const validateName = (name) => {
+  const regex = /^[a-zA-Z\s'-]+$/;
+  return regex.test(name);
+};
 
 // Main Component
 
@@ -802,15 +893,34 @@ const CheckoutPage = () => {
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   const [removeItemIndex, setRemoveItemIndex] = useState(null);
 
+  const [paymentMethod, setPaymentMethod] = useState(null);
+
+  const [isPaymentConfirmModalOpen, setIsPaymentConfirmModalOpen] =
+    useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+
+  const [cardDetails, setCardDetails] = useState({
+    name: "",
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+  });
+
   const navigate = useNavigate();
 
-  const subtotal = items.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
+  const subtotal = useMemo(
+    () => items.reduce((total, item) => total + item.price * item.quantity, 0),
+    [items]
   );
-  const taxes = subtotal * TAX_RATE;
-  const discount = subtotal * (discountPercentage / 100);
-  const total = subtotal + taxes - discount;
+  const taxes = useMemo(() => subtotal * TAX_RATE, [subtotal]);
+  const discount = useMemo(
+    () => subtotal * (discountPercentage / 100),
+    [subtotal, discountPercentage]
+  );
+  const total = useMemo(
+    () => subtotal + taxes - discount,
+    [subtotal, taxes, discount]
+  );
 
   const handleIncreaseQuantity = (index) => {
     increaseQuantity(index);
@@ -868,32 +978,54 @@ const CheckoutPage = () => {
       return;
     }
 
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      const newOrderId = generateOrderId();
-      setOrderId(newOrderId);
-      // Save orderId to localStorage
-      localStorage.setItem("lastOrderId", newOrderId);
-      // Add the order to OrderContext
-      addOrder({
-        orderId: newOrderId,
-        items: items,
-        total: total,
-        status: "Order Received",
-      });
-      setIsSuccessModalOpen(true);
-      clearCart();
-      toast.success("Purchase completed successfully!", {
-        position: "bottom-right",
-        autoClose: 1500,
-        closeButton: true,
-        hideProgressBar: true,
-        pauseOnHover: true,
-        draggable: false,
-        icon: "🎉",
-      });
-    }, 2000);
+    // Validate Credit Card Information
+    const nameOnCard = cardDetails.name.trim();
+    const cardNumber = cardDetails.cardNumber.trim();
+    const expiryDate = cardDetails.expiry.trim();
+    const cvv = cardDetails.cvv.trim();
+
+    let validationErrorsExist = false;
+
+    if (nameOnCard === "") {
+      setValidationErrors((prev) => ({
+        ...prev,
+        nameOnCard: "Name on card is required.",
+      }));
+      validationErrorsExist = true;
+    }
+
+    if (!validateCardNumber(cardNumber)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        cardNumber:
+          "Invalid card number. Please enter a valid 16-digit card number.",
+      }));
+      validationErrorsExist = true;
+    }
+
+    if (!validateExpiryDate(expiryDate)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        expiryDate: "Invalid expiration date. Please use MM/YY format.",
+      }));
+      validationErrorsExist = true;
+    }
+
+    if (!validateCVV(cvv)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        cvv: "Invalid CVV. Please enter a 3 or 4-digit CVV.",
+      }));
+      validationErrorsExist = true;
+    }
+
+    if (validationErrorsExist) {
+      return;
+    }
+
+    // Set payment method and open confirmation modal
+    setSelectedPaymentMethod("Credit Card");
+    setIsPaymentConfirmModalOpen(true);
   };
 
   const handlePayment = (method) => {
@@ -910,42 +1042,81 @@ const CheckoutPage = () => {
 
       return;
     }
-    setIsProcessing(true);
-    toast.info(`Processing ${method} payment...`, {
-      position: "bottom-right",
-      autoClose: 1500,
-      closeButton: true,
-      hideProgressBar: true,
-      pauseOnHover: true,
-      draggable: false,
-      icon: "💳",
-    });
 
-    setTimeout(() => {
-      setIsProcessing(false);
-      const newOrderId = generateOrderId();
-      setOrderId(newOrderId);
-      // Save orderId to localStorage
-      localStorage.setItem("lastOrderId", newOrderId);
-      // Add the order to OrderContext
-      addOrder({
-        orderId: newOrderId,
-        items: items,
-        total: total,
-        status: "Order Received",
-      });
-      setIsSuccessModalOpen(true);
-      clearCart();
-      toast.success(`${method} payment successful!`, {
+    setSelectedPaymentMethod(method);
+    setIsPaymentConfirmModalOpen(true);
+  };
+
+  const processPayment = () => {
+    setIsProcessing(true);
+
+    if (selectedPaymentMethod === "Credit Card") {
+      // Simulate processing delay for credit card
+      setTimeout(() => {
+        setIsProcessing(false);
+        const newOrderId = generateOrderId();
+        setOrderId(newOrderId);
+        // Save orderId to localStorage
+        localStorage.setItem("lastOrderId", newOrderId);
+        // Add the order to OrderContext
+        addOrder({
+          orderId: newOrderId,
+          items: items,
+          total: total,
+          status: "Order Received",
+        });
+        setIsSuccessModalOpen(true);
+        clearCart();
+        toast.success("Purchase completed successfully!", {
+          position: "bottom-right",
+          autoClose: 1500,
+          closeButton: true,
+          hideProgressBar: true,
+          pauseOnHover: true,
+          draggable: false,
+          icon: "🎉",
+        });
+        setIsPaymentConfirmModalOpen(false);
+      }, 2000);
+    } else {
+      // For wallet payments
+      toast.info(`Processing ${selectedPaymentMethod} payment...`, {
         position: "bottom-right",
         autoClose: 1500,
         closeButton: true,
         hideProgressBar: true,
         pauseOnHover: true,
         draggable: false,
-        icon: "✅",
+        icon: "💳",
       });
-    }, 2000); // Simulate processing delay
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        const newOrderId = generateOrderId();
+        setOrderId(newOrderId);
+        // Save orderId to localStorage
+        localStorage.setItem("lastOrderId", newOrderId);
+        // Add the order to OrderContext
+        addOrder({
+          orderId: newOrderId,
+          items: items,
+          total: total,
+          status: "Order Received",
+        });
+        setIsSuccessModalOpen(true);
+        clearCart();
+        toast.success(`${selectedPaymentMethod} payment successful!`, {
+          position: "bottom-right",
+          autoClose: 1500,
+          closeButton: true,
+          hideProgressBar: true,
+          pauseOnHover: true,
+          draggable: false,
+          icon: "✅",
+        });
+        setIsPaymentConfirmModalOpen(false);
+      }, 2000); // Simulate processing delay
+    }
   };
 
   // Handler for Empty Cart Button
@@ -1040,16 +1211,40 @@ const CheckoutPage = () => {
     const updatedCustomizations = { ...editSelectedOptions };
 
     // Ensure that single-select customizations have a single value
-    menuData
-      .find((menuItem) => menuItem.id === items[currentEditIndex].id)
-      ?.customizations.forEach((customization) => {
-        if (!customization.removable) {
-          if (Array.isArray(updatedCustomizations[customization.name])) {
-            updatedCustomizations[customization.name] =
-              updatedCustomizations[customization.name][0] || "";
-          }
+    const menuItem = menuData.find(
+      (menuItem) => menuItem.id === items[currentEditIndex].id
+    );
+    menuItem?.customizations.forEach((customization) => {
+      if (!customization.removable) {
+        if (Array.isArray(updatedCustomizations[customization.name])) {
+          updatedCustomizations[customization.name] =
+            updatedCustomizations[customization.name][0] || "";
         }
+      }
+    });
+
+    // Validate that required customizations are selected
+    const isValid = menuItem?.customizations.every((customization) => {
+      if (customization.removable) {
+        // At least one option can be selected or none
+        return true;
+      } else {
+        // Exactly one option must be selected
+        return (
+          updatedCustomizations[customization.name] &&
+          typeof updatedCustomizations[customization.name] === "string" &&
+          updatedCustomizations[customization.name].trim() !== ""
+        );
+      }
+    });
+
+    if (!isValid) {
+      toast.error("Please select all required customization options.", {
+        position: "bottom-right",
+        autoClose: 2000,
       });
+      return;
+    }
 
     updateCustomizations(currentEditIndex, updatedCustomizations);
     toast.success("Customization updated successfully!", {
@@ -1122,9 +1317,85 @@ const CheckoutPage = () => {
     });
   };
 
+  // Input Validation States
+  const [validationErrors, setValidationErrors] = useState({
+    nameOnCard: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setCardDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Real-time validation
+    switch (name) {
+      case "name":
+        if (value.trim() === "") {
+          setValidationErrors((prev) => ({
+            ...prev,
+            nameOnCard: "Name is required.",
+          }));
+        } else if (!validateName(value.trim())) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            nameOnCard:
+              "Invalid name format. Please enter a valid name using a-z, A-Z, spaces, hyphens, and apostrophes.",
+          }));
+        } else {
+          setValidationErrors((prev) => ({ ...prev, nameOnCard: "" }));
+        }
+        break;
+      case "cardNumber":
+        if (!validateCardNumber(value)) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            cardNumber:
+              "Invalid card number. Please enter a 16-digit number with spaces in between each group (ex: 4539 1488 0343 6467).",
+          }));
+        } else {
+          setValidationErrors((prev) => ({ ...prev, cardNumber: "" }));
+        }
+        break;
+      case "expiry":
+        if (!validateExpiryDate(value)) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            expiryDate:
+              "Invalid expiration date. Please enter a valid MM/YY format.",
+          }));
+        } else {
+          setValidationErrors((prev) => ({ ...prev, expiryDate: "" }));
+        }
+        break;
+      case "cvv":
+        if (!validateCVV(value)) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            cvv: "Invalid CVV.",
+          }));
+        } else {
+          setValidationErrors((prev) => ({ ...prev, cvv: "" }));
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Calculate Order Total
+  const calculateTotal = () => {
+    return (subtotal + taxes - discount).toFixed(2);
+  };
+
   return (
     <ResponsiveContainer>
-      <BackButton />
+      <BackButton aria-label="Go Back to Menu" />
       <form onSubmit={handleCheckout}>
         {/* Order Summary Section */}
         <OrderSummary>
@@ -1161,13 +1432,14 @@ const CheckoutPage = () => {
                       {/* Updated Customization Section */}
                       <td data-label="Customization">
                         <CustomizationWrapper>
-                          <EditButton
+                          <EditButtonStyled
                             type="button"
                             onClick={() => handleEditCustomization(index)}
                             aria-label={`Edit customization for ${item.name}`}
+                            disabled={isProcessing}
                           >
                             Edit
-                          </EditButton>
+                          </EditButtonStyled>
                           {item.customizations &&
                           Object.keys(item.customizations).length > 0 ? (
                             <CustomizationList>
@@ -1273,7 +1545,7 @@ const CheckoutPage = () => {
               </div>
               <div className="total">
                 <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>${calculateTotal()}</span>
               </div>
 
               {/* Discount Code Input */}
@@ -1284,11 +1556,16 @@ const CheckoutPage = () => {
                   value={discountCode}
                   onChange={(e) => setDiscountCode(e.target.value)}
                   aria-label="Discount code"
+                  maxLength={20}
                 />
                 <ApplyButton
                   type="button"
                   onClick={handleApplyDiscount}
-                  disabled={discountPercentage > 0 || isProcessing}
+                  disabled={
+                    discountPercentage > 0 ||
+                    isProcessing ||
+                    discountCode.trim() === ""
+                  }
                   aria-label="Apply Discount Code"
                 >
                   Apply
@@ -1346,7 +1623,18 @@ const CheckoutPage = () => {
                   name="name"
                   placeholder="John Doe"
                   required
+                  onChange={handleInputChange}
+                  aria-required="true"
+                  aria-invalid={validationErrors.nameOnCard ? "true" : "false"}
                 />
+                {validationErrors.nameOnCard && (
+                  <span
+                    role="alert"
+                    style={{ color: "red", fontSize: "0.8rem" }}
+                  >
+                    {validationErrors.nameOnCard}
+                  </span>
+                )}
               </InputContainer>
               <InputContainer>
                 <InputLabel htmlFor="cardNumber">Card Number</InputLabel>
@@ -1356,7 +1644,18 @@ const CheckoutPage = () => {
                   name="cardNumber"
                   placeholder="1234 5678 9012 3456"
                   required
+                  onChange={handleInputChange}
+                  aria-required="true"
+                  aria-invalid={validationErrors.cardNumber ? "true" : "false"}
                 />
+                {validationErrors.cardNumber && (
+                  <span
+                    role="alert"
+                    style={{ color: "red", fontSize: "0.8rem" }}
+                  >
+                    {validationErrors.cardNumber}
+                  </span>
+                )}
               </InputContainer>
               <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
                 <InputContainer style={{ flex: 1, minWidth: "150px" }}>
@@ -1367,17 +1666,41 @@ const CheckoutPage = () => {
                     name="expiry"
                     placeholder="MM/YY"
                     required
+                    onChange={handleInputChange}
+                    aria-required="true"
+                    aria-invalid={
+                      validationErrors.expiryDate ? "true" : "false"
+                    }
                   />
+                  {validationErrors.expiryDate && (
+                    <span
+                      role="alert"
+                      style={{ color: "red", fontSize: "0.8rem" }}
+                    >
+                      {validationErrors.expiryDate}
+                    </span>
+                  )}
                 </InputContainer>
                 <InputContainer style={{ flex: 1, minWidth: "100px" }}>
                   <InputLabel htmlFor="cvv">CVV</InputLabel>
                   <InputField
-                    type="text"
+                    type="password"
                     id="cvv"
                     name="cvv"
                     placeholder="123"
                     required
+                    onChange={handleInputChange}
+                    aria-required="true"
+                    aria-invalid={validationErrors.cvv ? "true" : "false"}
                   />
+                  {validationErrors.cvv && (
+                    <span
+                      role="alert"
+                      style={{ color: "red", fontSize: "0.8rem" }}
+                    >
+                      {validationErrors.cvv}
+                    </span>
+                  )}
                 </InputContainer>
               </div>
             </CreditCardForm>
@@ -1418,6 +1741,20 @@ const CheckoutPage = () => {
           />
         )}
 
+        {/* Payment Confirmation Modal */}
+        {isPaymentConfirmModalOpen && (
+          <PaymentConfirmationModal
+            isOpen={isPaymentConfirmModalOpen}
+            onConfirm={processPayment}
+            onCancel={() => setIsPaymentConfirmModalOpen(false)}
+            subtotal={subtotal}
+            taxes={taxes}
+            discount={discount}
+            total={total}
+            paymentMethod={selectedPaymentMethod}
+          />
+        )}
+
         {/* Edit Customization Modal */}
         {isEditModalOpen && currentEditIndex !== null && (
           <ModalOverlay
@@ -1429,7 +1766,7 @@ const CheckoutPage = () => {
             role="dialog"
             aria-modal="true"
           >
-            <ModalContent>
+            <ModalContentStyled>
               <CloseButton
                 onClick={handleCancelEditCustomization}
                 aria-label="Close Edit Customization Modal"
@@ -1491,7 +1828,7 @@ const CheckoutPage = () => {
                   {isProcessing ? "Updating..." : "Update"}
                 </ConfirmButtonStyled>
               </div>
-            </ModalContent>
+            </ModalContentStyled>
           </ModalOverlay>
         )}
       </form>
