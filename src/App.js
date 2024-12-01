@@ -1,5 +1,3 @@
-// src/App.js
-
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
@@ -11,7 +9,7 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderStatusPage from "./pages/OrderStatusPage";
-import RequestServicesPage from "./pages/RequestServicesPage"; // Import RequestServicesPage
+import RequestServicesPage from "./pages/RequestServicesPage";
 import styled, { createGlobalStyle } from "styled-components";
 
 import "@fontsource/open-sans"; // Import Open Sans font
@@ -26,7 +24,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   html {
-    overflow-y: scroll; /* Ensures a vertical scrollbar is always present */
+    overflow-y: scroll;
   }
 
   * {
@@ -42,10 +40,10 @@ const AppContainer = styled.div`
 
 const MainContent = styled.main`
   flex: 1;
-  padding-top: 70px; /* Added padding to prevent overlap with fixed header */
+  padding-top: 70px;
 
   @media (max-width: 768px) {
-    padding-top: 60px; /* Adjust padding for smaller screens if needed */
+    padding-top: 60px;
   }
 `;
 
@@ -63,11 +61,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-status" element={<OrderStatusPage />} />
-            <Route
-              path="/request-services"
-              element={<RequestServicesPage />}
-            />{" "}
-            {/* New route */}
+            <Route path="/request-services" element={<RequestServicesPage />} />
             <Route path="*" element={<h1>404: Page Not Found</h1>} />
           </Routes>
         </MainContent>

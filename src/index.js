@@ -1,9 +1,9 @@
 import React from "react";
-import ReactDOM from "react-dom/client"; // Note the "react-dom/client" update for React 18
+import ReactDOM from "react-dom/client"; // Updated for React 18
 import App from "./App";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { HashRouter as Router } from "react-router-dom"; // Use HashRouter instead of BrowserRouter
+import { HashRouter as Router } from "react-router-dom"; // Using HashRouter for GitHub Pages
 import { CartProvider } from "./contexts/CartContext";
 import { OrderProvider } from "./contexts/OrderContext";
 
@@ -13,7 +13,8 @@ root.render(
   <React.StrictMode>
     <CartProvider>
       <OrderProvider>
-        <Router>
+        {/* Add basename pointing to your GitHub repository name */}
+        <Router basename="/res-app">
           <App />
           <ToastContainer />
         </Router>
