@@ -13,8 +13,7 @@ root.render(
   <React.StrictMode>
     <CartProvider>
       <OrderProvider>
-        {/* Add basename pointing to your GitHub repository name */}
-        <Router basename="/res-app">
+        <Router>
           <App />
           <ToastContainer />
         </Router>
